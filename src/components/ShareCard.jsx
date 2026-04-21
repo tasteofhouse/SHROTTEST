@@ -1,6 +1,10 @@
 import { useRef, useState } from 'react';
 import html2canvas from 'html2canvas';
-import { Download, Copy, Check, Link, Sparkles, Receipt, Trophy, IdCard } from 'lucide-react';
+import {
+  Download, Copy, Check, Link,
+  Sparkles, Receipt, Trophy, IdCard,
+  MessageCircle, Stethoscope, NotebookPen, Newspaper,
+} from 'lucide-react';
 
 function XIcon({ className }) {
   return (
@@ -11,10 +15,14 @@ function XIcon({ className }) {
 }
 
 const VARIANTS = [
-  { id: 'classic', label: '클래식', icon: Sparkles },
-  { id: 'receipt', label: '영수증', icon: Receipt },
-  { id: 'tier',    label: '티어표', icon: Trophy },
-  { id: 'idcard',  label: '신분증', icon: IdCard },
+  { id: 'classic',   label: '클래식',  icon: Sparkles },
+  { id: 'profile',   label: '프로필',  icon: MessageCircle },
+  { id: 'diagnosis', label: '진단서',  icon: Stethoscope },
+  { id: 'diary',     label: '다이어리', icon: NotebookPen },
+  { id: 'magazine',  label: '매거진',  icon: Newspaper },
+  { id: 'receipt',   label: '영수증',  icon: Receipt },
+  { id: 'tier',      label: '티어표',  icon: Trophy },
+  { id: 'idcard',    label: '신분증',  icon: IdCard },
 ];
 
 export default function ShareCard({ personality, topCategories, stats, indices }) {
@@ -117,6 +125,18 @@ export default function ShareCard({ personality, topCategories, stats, indices }
         <div ref={cardRef}>
           {variant === 'classic' && (
             <ClassicCard personality={personality} top3={top3} stats={stats} />
+          )}
+          {variant === 'profile' && (
+            <ProfileCard personality={personality} top3={top3} stats={stats} indices={indices} />
+          )}
+          {variant === 'diagnosis' && (
+            <DiagnosisCard personality={personality} top3={top3} stats={stats} indices={indices} />
+          )}
+          {variant === 'diary' && (
+            <DiaryCard personality={personality} top3={top3} stats={stats} indices={indices} />
+          )}
+          {variant === 'magazine' && (
+            <MagazineCard personality={personality} top3={top3} stats={stats} indices={indices} />
           )}
           {variant === 'receipt' && (
             <ReceiptCard personality={personality} top3={top3} stats={stats} indices={indices} />
@@ -513,6 +533,412 @@ function Chip({ label, value }) {
     <div className="rounded-lg bg-zinc-900 border border-zinc-800 px-2 py-1.5">
       <div className="text-[9px] text-zinc-500">{label}</div>
       <div className="text-sm font-bold text-white tabular-nums">{value}</div>
+    </div>
+  );
+}
+
+/* Helpers shared across psych-test style variants */
+function traitsFor(personality, stats, indices, top3) {
+  const i = indices || {};
+  const traits = [];
+  if (i.dopamine >= 70) traits.push('도파민에 영혼을 맡김');
+  else if (i.dopamine >= 40) traits.push('적당한 자극 러버');
+  else traits.push('차분한 시청 스타일');
+
+  if (i.nocturnal >= 35) traits.push('새벽형 올빼미 체질');
+  else if (stats?.peakHour >= 22 || stats?.peakHour <= 2) traits.push('자기 전 한 컷이 국룰');
+  else traits.push(`${stats?.peakHour || 0}시쯤 가장 활발`);
+
+  if (i.explorer >= 70) traits.push('알고리즘이 날 못 읽음');
+  else if (i.picky >= 70) traits.push('취향 한 우물 파는 중');
+  else traits.push('적당히 다양하게 탐색');
+
+  if (top3?.[0]) traits.push(`${top3[0].label} 편애 중`);
+  return traits;
+}
+
+function prosConsFor(personality, stats, indices) {
+  const pros = [];
+  const cons = [];
+  const i = indices || {};
+  if (i.explorer >= 60) pros.push('호기심 왕성');
+  if (i.picky >= 60) pros.push('취향이 확고함');
+  if (stats?.avgPerDay >= 20) pros.push('콘텐츠 리터러시');
+  if (i.dopamine < 50) pros.push('자제력 탑재');
+  if (pros.length < 3) pros.push('관찰력 좋음', '트렌드 감지', '선별 능력');
+
+  if (i.dopamine >= 60) cons.push('한 번 켜면 못 끔');
+  if (i.nocturnal >= 35) cons.push('수면 부채 증가');
+  if (stats?.avgPerDay >= 50) cons.push('생산성 vs 콘텐츠 줄다리기');
+  if (i.picky >= 70) cons.push('시야가 좁아질 수 있음');
+  if (cons.length < 2) cons.push('가끔 알고리즘에 휘둘림');
+
+  return { pros: pros.slice(0, 3), cons: cons.slice(0, 2) };
+}
+
+/* ===================== VARIANT 5 — PROFILE (동물티콘 스타일) ===================== */
+function ProfileCard({ personality, top3, stats, indices }) {
+  const traits = traitsFor(personality, stats, indices, top3);
+  const { pros, cons } = prosConsFor(personality, stats, indices);
+
+  return (
+    <div
+      className="w-[320px] rounded-3xl p-5 shadow-glow-lg relative overflow-hidden"
+      style={{
+        backgroundColor: '#ffe9f1',
+        backgroundImage:
+          'linear-gradient(#ffffff80 1px, transparent 1px), linear-gradient(90deg, #ffffff80 1px, transparent 1px)',
+        backgroundSize: '16px 16px',
+      }}
+    >
+      {/* decorative sparkles */}
+      <div className="absolute top-3 right-4 text-xl">✨</div>
+      <div className="absolute bottom-20 left-3 text-sm">⭐</div>
+      <div className="absolute top-28 right-5 text-xs">♡</div>
+
+      {/* Title */}
+      <div className="text-center mb-3">
+        <div className="text-[10px] text-pink-500 tracking-[0.3em] font-bold">YOUTUBE TYPE TEST</div>
+        <h3 className="text-2xl font-black text-zinc-900 mt-0.5">내 취향 프로필</h3>
+      </div>
+
+      {/* Character bubble */}
+      <div className="flex items-start gap-2 mb-3">
+        <div className="relative">
+          <div className="w-20 h-20 rounded-full bg-white border-4 border-pink-300 flex items-center justify-center text-5xl shrink-0 shadow">
+            {personality.emoji}
+          </div>
+          <div className="absolute -bottom-1 -right-1 bg-pink-400 text-white text-[9px] px-1.5 py-0.5 rounded-full font-bold">
+            NEW
+          </div>
+        </div>
+        <div className="flex-1 relative bg-white rounded-2xl rounded-tl-none px-3 py-2 border-2 border-pink-200 shadow-sm">
+          <div className="text-[10px] text-pink-400 font-bold">{personality.vibe || 'MY TYPE'}</div>
+          <div className="text-base font-black text-zinc-900 leading-tight">{personality.name}</div>
+          <div className="text-[10px] text-zinc-600 italic mt-0.5">"{personality.tagline}"</div>
+        </div>
+      </div>
+
+      {/* 특징 section */}
+      <div className="bg-white rounded-2xl p-3 border-2 border-pink-200 mb-2">
+        <div className="text-[11px] font-black text-pink-500 mb-1.5">📌 특징</div>
+        <ul className="space-y-1">
+          {traits.map((t, i) => (
+            <li key={i} className="text-[11px] text-zinc-800 flex items-start gap-1.5">
+              <span className="text-pink-400 mt-0.5">✔</span>
+              <span>{t}</span>
+            </li>
+          ))}
+        </ul>
+      </div>
+
+      {/* Pros & cons */}
+      <div className="grid grid-cols-2 gap-2 mb-2">
+        <div className="bg-gradient-to-br from-pink-100 to-rose-100 rounded-2xl p-2.5 border-2 border-pink-200">
+          <div className="text-[10px] font-black text-pink-500 mb-1">💗 장점</div>
+          <ul className="space-y-0.5">
+            {pros.map((p, i) => (
+              <li key={i} className="text-[10px] text-zinc-800">• {p}</li>
+            ))}
+          </ul>
+        </div>
+        <div className="bg-gradient-to-br from-violet-50 to-indigo-50 rounded-2xl p-2.5 border-2 border-violet-200">
+          <div className="text-[10px] font-black text-violet-500 mb-1">💭 단점</div>
+          <ul className="space-y-0.5">
+            {cons.map((c, i) => (
+              <li key={i} className="text-[10px] text-zinc-800">• {c}</li>
+            ))}
+          </ul>
+        </div>
+      </div>
+
+      {/* Footer */}
+      <div className="text-center">
+        <div className="inline-block bg-white rounded-full px-3 py-1 border-2 border-pink-200 text-[10px] text-zinc-700">
+          총 <b>{stats?.total?.toLocaleString() || 0}</b>편 · 채널 <b>{stats?.uniqueChannels?.toLocaleString() || 0}</b>개
+        </div>
+        <div className="text-[9px] text-pink-400 mt-1.5">#내유튜브프로필</div>
+      </div>
+    </div>
+  );
+}
+
+/* ===================== VARIANT 6 — DIAGNOSIS (주의보 스타일) ===================== */
+function DiagnosisCard({ personality, top3, stats, indices }) {
+  const i = indices || {};
+  const severity = Math.round(((i.dopamine || 0) + (i.nocturnal || 0) * 0.7 + Math.min(100, (stats?.avgPerDay || 0))) / 2.7);
+  const sevLabel = severity >= 75 ? '심각' : severity >= 50 ? '주의' : severity >= 25 ? '관찰' : '안전';
+  const sevColor = severity >= 75 ? 'bg-red-500' : severity >= 50 ? 'bg-orange-500' : severity >= 25 ? 'bg-amber-400' : 'bg-emerald-500';
+
+  const symptoms = [];
+  if (stats?.avgPerDay >= 20) symptoms.push(`하루 ${stats.avgPerDay.toFixed(1)}편 시청 기록`);
+  if (i.nocturnal >= 25) symptoms.push(`새벽 시청 비율 ${i.nocturnal}%`);
+  if (i.dopamine >= 50) symptoms.push(`도파민 지수 ${i.dopamine} 측정`);
+  if (stats?.uniqueChannels >= 1000) symptoms.push(`채널 ${stats.uniqueChannels.toLocaleString()}개 무분별 구독`);
+  if (top3?.[0]) symptoms.push(`${top3[0].label} 카테고리 편식 소견`);
+  if (symptoms.length < 3) symptoms.push('YouTube 알고리즘 의존 징후');
+
+  const prescriptions = [
+    i.nocturnal >= 35 ? '12시 이후 YouTube 앱 잠금' : '저녁 시간대 시청 루틴 유지',
+    i.dopamine >= 70 ? '하루 1회 "쇼츠 금식" 권장' : '적정량 유지 중',
+    i.explorer >= 70 ? '가끔은 한 채널 정주행도 ❤️' : '새 채널 탐험 추천',
+  ];
+
+  return (
+    <div className="w-[320px] rounded-3xl p-5 shadow-glow-lg bg-gradient-to-br from-rose-50 to-pink-100 border-4 border-rose-300 relative overflow-hidden">
+      <div className="absolute top-2 right-3 text-3xl opacity-30">⚠️</div>
+
+      {/* Header */}
+      <div className="text-center mb-3">
+        <div className="inline-flex items-center gap-1 text-rose-600 text-[10px] font-black tracking-[0.3em]">
+          <span>⚠</span>
+          <span>YOUTUBE 증후군 진단서</span>
+          <span>⚠</span>
+        </div>
+        <h3 className="text-xl font-black text-zinc-900 mt-1">두근두근 시청 주의보</h3>
+        <div className="text-[9px] text-zinc-500 mt-1">발행일 {new Date().toLocaleDateString('ko-KR')}</div>
+      </div>
+
+      {/* Patient card */}
+      <div className="bg-white rounded-2xl p-3 mb-3 border-2 border-rose-200">
+        <div className="flex items-center gap-3">
+          <div className="text-5xl">{personality.emoji}</div>
+          <div className="flex-1">
+            <div className="text-[10px] text-rose-500 font-bold">진단명</div>
+            <div className="text-base font-black text-zinc-900 leading-tight">{personality.name}</div>
+            {personality.vibe && (
+              <div className="text-[10px] text-zinc-500">유형: #{personality.vibe}</div>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Severity meter */}
+      <div className="bg-white rounded-2xl p-3 mb-3 border-2 border-rose-200">
+        <div className="flex items-center justify-between mb-1">
+          <span className="text-[11px] font-black text-zinc-700">위험도</span>
+          <span className={`text-white text-[10px] font-black px-2 py-0.5 rounded-full ${sevColor}`}>
+            {sevLabel} · {severity}
+          </span>
+        </div>
+        <div className="h-2 w-full rounded-full bg-zinc-200 overflow-hidden">
+          <div className={`h-full ${sevColor}`} style={{ width: `${severity}%` }} />
+        </div>
+      </div>
+
+      {/* Symptoms */}
+      <div className="bg-white rounded-2xl p-3 mb-3 border-2 border-rose-200">
+        <div className="text-[11px] font-black text-rose-500 mb-1.5">📋 관찰된 증상</div>
+        <ul className="space-y-1">
+          {symptoms.slice(0, 4).map((s, idx) => (
+            <li key={idx} className="text-[11px] text-zinc-800 flex items-start gap-1.5">
+              <span className="inline-block w-3 h-3 rounded border-2 border-rose-400 bg-rose-100 text-[9px] leading-[8px] text-rose-500 text-center font-black shrink-0 mt-0.5">
+                ✓
+              </span>
+              <span>{s}</span>
+            </li>
+          ))}
+        </ul>
+      </div>
+
+      {/* Prescription */}
+      <div className="bg-gradient-to-br from-emerald-50 to-teal-50 rounded-2xl p-3 border-2 border-emerald-200">
+        <div className="text-[11px] font-black text-emerald-600 mb-1.5">💊 처방</div>
+        <ul className="space-y-0.5">
+          {prescriptions.map((p, idx) => (
+            <li key={idx} className="text-[10px] text-zinc-800">· {p}</li>
+          ))}
+        </ul>
+      </div>
+
+      <div className="text-center text-[10px] text-rose-400 mt-3 font-bold">#YouTube진단서</div>
+    </div>
+  );
+}
+
+/* ===================== VARIANT 7 — DIARY (노트 스타일) ===================== */
+function DiaryCard({ personality, top3, stats, indices }) {
+  const today = new Date();
+  const dateStr = `${today.getFullYear()}. ${String(today.getMonth() + 1).padStart(2, '0')}. ${String(today.getDate()).padStart(2, '0')}`;
+  const weekday = ['일', '월', '화', '수', '목', '금', '토'][today.getDay()];
+
+  return (
+    <div className="w-[320px] relative">
+      {/* washi tape top */}
+      <div
+        className="absolute -top-2 left-8 w-20 h-6 rotate-[-6deg] z-10 opacity-90"
+        style={{ backgroundColor: '#ffd6e0', backgroundImage: 'repeating-linear-gradient(45deg, transparent 0 6px, #ffffff50 6px 9px)' }}
+      />
+      <div
+        className="absolute -top-2 right-6 w-16 h-5 rotate-[8deg] z-10 opacity-90"
+        style={{ backgroundColor: '#c9e5ff', backgroundImage: 'repeating-linear-gradient(-45deg, transparent 0 6px, #ffffff50 6px 9px)' }}
+      />
+
+      <div
+        className="rounded-2xl p-6 shadow-glow-lg"
+        style={{
+          backgroundColor: '#fffdf6',
+          backgroundImage:
+            'linear-gradient(#f0ecda 1px, transparent 1px)',
+          backgroundSize: '100% 22px',
+          backgroundPosition: '0 32px',
+        }}
+      >
+        {/* Date header */}
+        <div className="flex items-end justify-between border-b-2 border-dashed border-rose-200 pb-2 mb-3">
+          <div>
+            <div className="text-[22px] font-black text-rose-500 leading-none">
+              {dateStr}
+            </div>
+            <div className="text-[10px] text-zinc-500 mt-1">{weekday}요일 · 나의 YouTube 일기</div>
+          </div>
+          <div className="text-2xl">📓</div>
+        </div>
+
+        {/* Mood sticker + name */}
+        <div className="flex items-center gap-3 mb-3">
+          <div className="w-16 h-16 rounded-full bg-gradient-to-br from-yellow-100 to-orange-100 border-2 border-dashed border-orange-300 flex items-center justify-center text-4xl">
+            {personality.emoji}
+          </div>
+          <div>
+            <div className="text-[10px] text-zinc-500">오늘의 나는…</div>
+            <div className="text-lg font-black text-zinc-900 leading-tight">{personality.name}</div>
+            {personality.vibe && (
+              <div className="text-[10px] text-rose-500">#{personality.vibe}</div>
+            )}
+          </div>
+        </div>
+
+        {/* Journal entry */}
+        <div className="text-[12px] text-zinc-800 leading-[22px] italic space-y-0">
+          <p>"{personality.tagline}"</p>
+          <p>✏️ 오늘 본 영상 <b>{stats?.total?.toLocaleString() || 0}</b>편!</p>
+          <p>🎀 가장 좋아한 카테고리:</p>
+          {top3.map((c) => (
+            <p key={c.id} className="pl-3">
+              ⭐ {c.emoji} {c.label} ({Math.round(c.ratio * 100)}%)
+            </p>
+          ))}
+          <p>
+            🕒 피크는 <b>{stats?.peakHour || 0}시</b>, {stats?.peakDay || '?'}요일 집중
+          </p>
+          <p>🏠 발굴한 채널 <b>{stats?.uniqueChannels?.toLocaleString() || 0}</b>개</p>
+        </div>
+
+        {/* Sticker row */}
+        <div className="mt-3 pt-3 border-t-2 border-dashed border-rose-200 flex items-center justify-between">
+          <div className="flex gap-1.5">
+            <span className="inline-block px-2 py-0.5 rounded-full bg-pink-100 border border-pink-300 text-[9px] text-pink-600 font-bold">
+              D-{stats?.spanDays || 1}
+            </span>
+            <span className="inline-block px-2 py-0.5 rounded-full bg-sky-100 border border-sky-300 text-[9px] text-sky-600 font-bold">
+              채널 {stats?.uniqueChannels?.toLocaleString() || 0}
+            </span>
+          </div>
+          <div className="text-2xl">🌸</div>
+        </div>
+
+        <div className="text-center text-[10px] text-rose-400 mt-2 font-bold">#내YT다이어리</div>
+      </div>
+    </div>
+  );
+}
+
+/* ===================== VARIANT 8 — MAGAZINE (Snowww 스타일) ===================== */
+function MagazineCard({ personality, top3, stats, indices }) {
+  const i = indices || {};
+  const blocks = [
+    { bg: '#ffd9e0', fg: '#c2185b', title: '🔎 프로필', lines: [
+      `유형  ${personality.name}`,
+      `바이브  #${personality.vibe || '유튜버'}`,
+      `한 줄  "${personality.tagline}"`,
+    ]},
+    { bg: '#fff0b8', fg: '#9a6400', title: '📊 통계', lines: [
+      `총  ${stats?.total?.toLocaleString() || 0}편`,
+      `평균  ${stats?.avgPerDay?.toFixed(1) || 0}편/일`,
+      `채널  ${stats?.uniqueChannels?.toLocaleString() || 0}개`,
+    ]},
+    { bg: '#c8e9ff', fg: '#0d4a7a', title: '🎯 TOP 3', lines: top3.map((c) => `${c.emoji} ${c.label}  ${Math.round(c.ratio * 100)}%`) },
+    { bg: '#d8f3d1', fg: '#2b6e1c', title: '⚡ 지수', lines: [
+      `도파민 ${i.dopamine ?? 0} · 야행성 ${i.nocturnal ?? 0}`,
+      `탐험력 ${i.explorer ?? 0} · 집중도 ${i.picky ?? 0}`,
+    ]},
+  ];
+
+  return (
+    <div
+      className="w-[320px] p-5 shadow-glow-lg relative"
+      style={{ backgroundColor: '#111' }}
+    >
+      {/* Title block — multicolor */}
+      <div className="relative mb-3">
+        <div className="flex flex-wrap gap-1">
+          {['YOU', 'TUBE', 'TYPE', 'ZINE'].map((w, idx) => (
+            <span
+              key={idx}
+              className="px-2 py-1 text-black font-black text-2xl tracking-tight"
+              style={{ backgroundColor: ['#ff5577', '#ffcc33', '#66ddaa', '#6699ff'][idx] }}
+            >
+              {w}
+            </span>
+          ))}
+        </div>
+        <div className="mt-2 flex items-center justify-between">
+          <span className="text-white text-[10px] tracking-widest">VOL.01</span>
+          <span className="text-white text-[10px]">
+            {new Date().toLocaleDateString('ko-KR')}
+          </span>
+        </div>
+      </div>
+
+      {/* Cover hero */}
+      <div className="flex items-center gap-3 bg-white px-3 py-3 mb-3 border-4 border-black relative">
+        <div className="text-5xl">{personality.emoji}</div>
+        <div className="flex-1 min-w-0">
+          <div className="text-[9px] font-black tracking-widest text-rose-500">EXCLUSIVE</div>
+          <div className="text-base font-black text-black leading-tight truncate">
+            {personality.name}
+          </div>
+          {personality.vibe && (
+            <div className="text-[10px] text-zinc-700">#{personality.vibe}</div>
+          )}
+        </div>
+        <div className="absolute -top-2 -right-2 bg-yellow-300 border-2 border-black text-[10px] font-black px-2 py-0.5 rotate-6">
+          FACT ✓
+        </div>
+      </div>
+
+      {/* 4 color blocks */}
+      <div className="grid grid-cols-2 gap-2">
+        {blocks.map((b, idx) => (
+          <div
+            key={idx}
+            className="p-2.5 relative"
+            style={{ backgroundColor: b.bg }}
+          >
+            <div className="text-[10px] font-black mb-1" style={{ color: b.fg }}>
+              {b.title}
+            </div>
+            <ul className="space-y-0.5">
+              {b.lines.map((l, i2) => (
+                <li key={i2} className="text-[10px] font-bold text-black leading-tight">
+                  {l}
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))}
+      </div>
+
+      {/* Tagline ribbon */}
+      <div className="mt-3 bg-white border-2 border-black px-3 py-2 flex items-center justify-between">
+        <span className="text-[11px] font-black text-black">"{personality.tagline}"</span>
+        <span className="text-[9px] bg-black text-white px-1.5 py-0.5 font-black">FIN</span>
+      </div>
+
+      <div className="text-center text-[9px] text-white mt-2 font-bold tracking-widest">
+        #유튜브매거진 #FACT
+      </div>
     </div>
   );
 }
