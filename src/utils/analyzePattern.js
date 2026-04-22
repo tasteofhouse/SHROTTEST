@@ -101,34 +101,91 @@ export function summaryStats(shorts) {
   };
 }
 
-// Fun "indices" — 0–100 bars for the personality card.
-export function computeIndices(stats, categoryDist, topChannels) {
-  // Dopamine: heavy viewing + night = addictive
-  const volume = Math.min(1, stats.avgPerDay / 100); // 100/day → 1.0
+// Fun "indices" — 0–100 bars for the personality card. 10 axes total.
+export function computeIndices(stats, categoryDist, topChannels, shorts = null) {
+  // 1. Dopamine: heavy viewing + night = addictive
+  const volume = Math.min(1, stats.avgPerDay / 100);
   const dopamine = Math.round((volume * 0.6 + stats.nightRatio * 0.4) * 100);
 
-  // Nocturnal: 0-5 AM ratio
+  // 2. Nocturnal: 0-5 AM ratio
   const nocturnal = Math.round(stats.nightRatio * 100);
 
-  // Explorer: channel diversity. 25% unique-channel-to-view ratio → 100
+  // 3. Explorer: channel diversity
   const diversityRaw = stats.total > 0 ? stats.uniqueChannels / stats.total : 0;
   const explorer = Math.round(Math.min(1, diversityRaw / 0.25) * 100);
 
-  // Picky: top category concentration (edible vs etc)
+  // 4. Picky: top category concentration (edible vs etc)
   const topCat = [...categoryDist]
     .filter((c) => c.id !== 'etc')
     .sort((a, b) => b.ratio - a.ratio)[0];
   const picky = Math.round(Math.min(1, (topCat?.ratio || 0) / 0.5) * 100);
 
-  // Top-3 channel share — useful signal for 'loyal' personality
+  // Support re-computations that share data
   const totalViews = stats.total || 1;
+
+  // 5. Loyalty 충성도 — top-3 channel share (0.5 share → 100)
   const top3Share = topChannels.slice(0, 3).reduce((s, c) => s + c.count, 0) / totalViews;
+  const loyalty = Math.round(Math.min(1, top3Share / 0.4) * 100);
+
+  // For the remaining indices we need hour/day-of-week buckets. We can derive them from
+  // shorts when provided, else approximate from stats.
+  let binge = 0, weekend = 0, morning = 0, shortsness = 0, steady = 0;
+
+  if (Array.isArray(shorts) && shorts.length > 0) {
+    let weekendCount = 0;
+    let morningCount = 0;
+    let shortsCount = 0;
+    const dailyMap = new Map();
+    for (const s of shorts) {
+      const d = s.time.getDay();
+      const h = s.time.getHours();
+      if (d === 0 || d === 6) weekendCount += 1;
+      if (h >= 6 && h <= 10) morningCount += 1;
+      if (s.isShort) shortsCount += 1;
+      const key = s.time.toISOString().slice(0, 10);
+      dailyMap.set(key, (dailyMap.get(key) || 0) + 1);
+    }
+    // 6. Binge — max-day vs avg-day ratio (3x avg → 100)
+    const maxDay = Math.max(0, ...dailyMap.values());
+    const avgDay = stats.avgPerDay || 1;
+    binge = Math.round(Math.min(1, (maxDay / avgDay - 1) / 2) * 100);
+    // 7. Weekend — weekend view share (0.45+ weekend → 100)
+    weekend = Math.round(Math.min(1, (weekendCount / totalViews) / 0.45) * 100);
+    // 8. Morning — 6–10시 share (0.25 → 100)
+    morning = Math.round(Math.min(1, (morningCount / totalViews) / 0.25) * 100);
+    // 9. Shortsness — hashtag-confirmed shorts share (0.2 → 100)
+    shortsness = Math.round(Math.min(1, (shortsCount / totalViews) / 0.2) * 100);
+    // 10. Steady — daily consistency. coefficient of variation inverted.
+    const values = Array.from(dailyMap.values());
+    if (values.length > 1) {
+      const mean = values.reduce((a, b) => a + b, 0) / values.length;
+      const variance = values.reduce((a, b) => a + (b - mean) ** 2, 0) / values.length;
+      const sd = Math.sqrt(variance);
+      const cv = mean > 0 ? sd / mean : 1;
+      steady = Math.round(Math.max(0, Math.min(1, 1 - cv / 1.5)) * 100);
+    } else {
+      steady = 30;
+    }
+  } else {
+    // Approximations when shorts not provided
+    binge = Math.round(Math.min(100, (stats.maxDayCount / Math.max(1, stats.avgPerDay)) * 15));
+    weekend = stats.peakDayIdx === 0 || stats.peakDayIdx === 6 ? 70 : 35;
+    morning = stats.peakHour >= 6 && stats.peakHour <= 10 ? 75 : 20;
+    shortsness = Math.round(Math.min(100, (stats.shortsCount / totalViews) * 500));
+    steady = 50;
+  }
 
   return {
     dopamine,
     nocturnal,
     explorer,
     picky,
+    loyalty,
+    binge,
+    weekend,
+    morning,
+    shortsness,
+    steady,
     top3Share,
   };
 }

@@ -133,6 +133,53 @@ const CHANNEL_DICT = [
   // 동물 채널
   [/크림히어로즈|루루와 친구들|SBS TV동물농장|수리노을TV|냥이와 댕댕이|댕댕연구소|하루댕이|냥코|어메이징 동물|뚜TV|워뇽이|빙봉TV|댕냥이|고양씨|댕댕이|냥이|캣타워/i, 'animal'],
   [/동물|강아지|고양이|냥이|댕댕|멍멍|판다|코끼리|호랑이|사자|곰|반려|pet|animal|wild|야생|자연농장|동물원|수족관|puppy|kitten|dog|cat|앵무새|햄스터|토끼|고슴도치|페럿|거북이/i, 'animal'],
+
+  // ════════════════════════════════════════════════════════════
+  // 🔭 EXPANSION PACK — more Korean + international channels for 10k coverage
+  // ════════════════════════════════════════════════════════════
+  // Game (streamers, guides, publishers)
+  [/푸린|따효니|왁파고|옥냥이|빅헤드|쌈바|한동숙|뜨뜨뜨뜨|베르|꽃빈|쥬얼리팬츠|미미미누|네클릿|라온|랄로|남봉|박가네|박가네상회|오킹|서새봄|세야|대정령|플래티넘크라운/i, 'game'],
+  [/Riot Games|라이엇게임즈|Ubisoft|유비소프트|EA Korea|Epic Games|에픽게임즈|스퀘어에닉스|세가|SEGA|반다이남코|Bandai|Rockstar|락스타|Bethesda|베데스다|Blizzard|블리자드/i, 'game'],
+  [/마왕의게임나라|대기업|카트라이더|배그서울|서울다이너스티|Faker|페이커|Chovy|쵸비|쇼메이커|ShowMaker|Deft|데프트|Gumayusi|구마유시|Keria|케리아/i, 'game'],
+  // Comedy/Entertainment (Korean internet variety)
+  [/뜬뜬|차린건|차린건 없지만|나영석|지대넓얕|이영자|신기방기|주이|최예나|노빠꾸탁재훈|장미여관|머니게임|좀비버스|피지컬100|SNL코리아|SNL KOREA|대부분의 감빵생활|스튜디오룰루랄라|스튜디오수제|네고왕|강재원/i, 'comedy'],
+  [/터미네이터|환승연애|솔로지옥|나는솔로|대탈출|크라임씬|부산촌놈|놀뭐|어쩌다사장|삼시세끼|윤식당|꽃보다|1박|뭉쳐야|아는형님|런닝맨.*(공식)|놀라운토요일|동상이몽/i, 'comedy'],
+  // Drama / Film criticism
+  [/발없는새|발없는 새|삐맨|고몽|뀨몽|엔딩크레딧|영화몰아보기|몰아보기|빨강도깨비|Netflix K-Content|웨이브오리지널|쿠팡플레이|와바시네마|지무비|G Movie|소개해주는 남자|알려주는 남자|무비꾸밈|무비레이더/i, 'drama'],
+  [/시네필지드|리뷰엉이 영화|김시선|김시선북|스포일러|결말포함 리뷰|영화평론|시네마운틴|씨네큐레이터|Oscar|오스카|아카데미상|칸 영화제|베니스 영화제|부산국제영화제/i, 'drama'],
+  // Music extras
+  [/ATEEZ|에이티즈|TREASURE|트레저|StrayKids Official|Stray Kids|ZEROBASEONE|제로베이스원|ZB1|BOYNEXTDOOR|보넥도|RIIZE|라이즈|ILLIT|아일릿|NMIXX|엔믹스|KISSOFLIFE|키스오브라이프|TRIPLES|트리플에스/i, 'music'],
+  [/IU|아이유|IU Official|태연|TAEYEON|Bruno Mars|테일러스위프트|Taylor Swift|Billie Eilish|빌리 아일리시|The Weeknd|위켄드|Ed Sheeran|에드 시런|Dua Lipa|두아 리파|아리아나|Ariana/i, 'music'],
+  [/딩고뮤직|DingoMusic|스튜디오 와플 뮤직|Studio Waffle|it's Live|이츠라이브|뭐듣지|콘서트캐스트|라이브클립|뮤지션|버스킹|인디음악|홍대인디/i, 'music'],
+  // Sports extras (domestic / overseas)
+  [/KBSN스포츠|JTBC Golf|KBSN 골프|SBS스포츠|tvN SPORTS|쿠팡플레이 스포츠|디 애슬래틱|The Athletic|ESPN|ESPN Korea|푸스포트|UCL|UEFA|FIFA Korea|AFC Asian Cup/i, 'sports'],
+  [/NBA Korea|MLB Korea|프로농구|KBL|WKBL|프로배구|V-League|정관장|흥국생명|대한항공|현대캐피탈|페퍼저축은행|KOVO|KLPGA|KPGA|골프존/i, 'sports'],
+  [/축구|해설|해축|축덕|야덕|농덕|배덕|펠레|Pele|마라도나|베컴|지단|Zidane|앙리|Henry|박찬호|추신수|김연아|박세리|고진영|박성현|임성재|김세영|고아라/i, 'sports'],
+  // Food extras
+  [/유월이네|엠마|엄마의손맛|나나|샤니|지민2|짭짤이|복면제빵사|김풍|이연|승우아빠|해미|요리왕|제이식스|제이스키친|이대호의 경상도 맛집|정육왕|양식의양식|백슐랭|구독해라|치킨대통령/i, 'food'],
+  [/양준혁|나눔 푸드|먹짱스타그램|하얀트리|도로시|떵개떵|옐언니|라미월드|뽀니|수빙수|오늘 뭐 먹지|쿠캣|다이닝코드|네이버 푸드|배달의민족|Woowa Bros|배달음식/i, 'food'],
+  [/카페투어|디저트카페|브런치카페|홈카페|커피.*(원두|머신|추출|홈카페|로스팅)|바리스타|라떼아트|에스프레소|아메리카노|드립커피|핸드드립|더치커피|스페셜티커피/i, 'food'],
+  // News extras
+  [/KTV|국민소통|뉴스픽|뉴스레터|팟캐스트|딴지일보|조선일보 TV|중앙일보 라이브|한국경제TV|이데일리|매경TV|머니S|매거진한경|이슈와치|시사저널|시사인|서울경제TV/i, 'news'],
+  [/기자|앵커|특파원|정치부|사회부|국제부|경제부|스포츠부|생활문화부|편집국장|사설|칼럼|기고|여론|팩트체크|확인해보니|바로잡습니다/i, 'news'],
+  // Education / knowledge
+  [/EO|EO 채널|이오|긱블Geek|별별지식|별의잡학사전|지식한방|차이나는 클라스|북피디|북리뷰|책책책|독서법|책읽기|아침독서|저녁독서|지대넓얕|지식교양|TED Talks|TEDxSeoul|TED Ed|Kurzgesagt|Veritasium|3Blue1Brown/i, 'education'],
+  [/썸에이|에드테크|이퀄|학생부종합|수능강사|오르비|이재홍|현우진|김기현|주혜연|이명학|이병기|정승제|전형태|이근갑|지금 공부.*시작|공부왕|공부자극|10분공부법/i, 'education'],
+  [/부읽남|렘군|월급쟁이부자|월부|삼프로|삼프로TV|김작가TV|신과함께|언더스탠딩|수퍼플렉스|김동환|박세익|염승환|존리|강방천|미주미|연블리|주식왕초보|ETF.*(공부|가이드|투자)/i, 'education'],
+  [/의학.*(정보|지식|상식)|닥터지노|고약사|약국언니|약사가 들려주는|약들약|의사의품격|이재훈 정형외과|정재훈 셰프|조선에듀|에듀윌|해커스인강|공단기|스파르타코딩클럽|노마드코더|코딩애플|생활코딩|얄코/i, 'education'],
+  // Lifestyle extras
+  [/슈스스|박은정|다또아|레나|써니|소영|위라클|원샷한솔|정가은|이지혜|홍현희|정준하|김숙|송은이|미모|하나뷰티|얼짱시대|쎄마|달뷰티|프리지아|임블리/i, 'lifestyle'],
+  [/도티맘|주부의하루|엄마의하루|워킹맘|전업주부|살림노하우|집 꾸미기|오늘의집|이케아|자취방|자취생|월세|전세|원룸 인테리어|방꾸미기|홈인테리어|미니멀리즘/i, 'lifestyle'],
+  [/헤어 튜토리얼|머리 만지기|고데기|드라이기|염색|탈색|펌|웨이브|긴머리|단발|레이어드컷|시스루뱅|앞머리|셀프 네일|젤네일|풋케어|페디큐어/i, 'lifestyle'],
+  [/여행 유튜버|여행TV|트립어드바이저|구글맵 여행|호텔 리뷰|에어비앤비|항공권|여행 꿀팁|배낭 여행|오토바이 여행|캠핑카|캠핑|글램핑|백패킹|트레킹/i, 'lifestyle'],
+  // Tech extras
+  [/UNDERkg|디에디트|the.edit|리뷰플래닛|EMK|맥쓰남|애플매니아|Apple Korea|갤럭시코리아|원스토어|One Store|삼성닷컴|LG 닷컴|다나와|DANAWA|가격비교|쿠팡 테크|11번가 테크/i, 'tech'],
+  [/노답 IT|IT 뉴스|IT매거진|지디넷|디지털데일리|전자신문|ZDNet|디일렉|Engadget|The Verge|버지|TechCrunch|테크크런치|Wired|와이어드|아난드텍|AnandTech/i, 'tech'],
+  [/인공지능|머신러닝|딥러닝|LLM|ChatGPT|GPT-?4|Claude|제미나이|Gemini|Bard|AI 툴|프롬프트|노션|Notion|옵시디언|Obsidian|피그마|Figma|포토샵|Photoshop/i, 'tech'],
+  [/전기차|EV 리뷰|모터그래프|모트라인|오토포스트|자동차백과|카월드|카앤드라이버|Kia EV|현대 EV|아이오닉|IONIQ|제네시스|Genesis|BYD|비야디|폴스타|Polestar/i, 'tech'],
+  // Animal extras
+  [/팅슈롤|팅슈랜드|우주TV|꼬부기|보단이네|내가고양이|집사 일상|반려견 훈련|강형욱|개통령|개를부탁해|동물의왕국|동물농장|SBS 동물|펫TV|펫피커|일산펫빌리지/i, 'animal'],
+  [/Zoo|World|National Geographic|내셔널지오그래픽|BBC Earth|Animal Planet|애니멀플래닛|Wild Life|야생동물|다큐 동물|동물 다큐|자연 다큐|DMZ 야생|멸종위기|SBS 생태/i, 'animal'],
 ];
 
 // Title/channel keyword buckets (individual scoring).
@@ -256,6 +303,46 @@ const KEYWORDS = {
   ],
 };
 
+// --- Normalization: strip emoji, punctuation, whitespace, lowercase ---
+// This makes "공식 🎮 T1 Official!!!" and "t1official" match the same pattern.
+const EMOJI_RE = /[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}\u{1F1E6}-\u{1F1FF}\u{2B00}-\u{2BFF}]/gu;
+const NONWORD_RE = /[^\p{L}\p{N}]/gu;
+
+function normalizeChannelName(name) {
+  if (!name) return '';
+  return String(name)
+    .replace(EMOJI_RE, '')
+    .replace(NONWORD_RE, '')
+    .toLowerCase();
+}
+
+// Pre-build a normalized-keyword index and a single mega-regex per category for speed.
+// We keep the original CHANNEL_DICT for source of truth but also create compiled maps.
+const NORMALIZED_CHANNEL_DICT = (() => {
+  // For each entry, extract all literal alternatives from the regex source and
+  // normalize them into lookup tokens. Very rough — good enough for substring match.
+  const tokenMap = []; // [normalizedToken, categoryId]
+  for (const [re, cat] of CHANNEL_DICT) {
+    const src = re.source;
+    // Split on | but respect groups coarsely: we only extract flat alternatives.
+    const parts = src.split('|');
+    for (const p of parts) {
+      const cleaned = p
+        .replace(/\\[bdswBDSWnrt]/g, '')
+        .replace(/[\\^$.()*+?{}[\]<>=!:]/g, '')
+        .replace(EMOJI_RE, '')
+        .replace(NONWORD_RE, '')
+        .toLowerCase();
+      if (cleaned && cleaned.length >= 2) {
+        tokenMap.push([cleaned, cat]);
+      }
+    }
+  }
+  // Sort longer tokens first so "bts" doesn't shadow "btsvlogs" etc.
+  tokenMap.sort((a, b) => b[0].length - a[0].length);
+  return tokenMap;
+})();
+
 function scoreText(text, keywords) {
   if (!text) return 0;
   const lower = text.toLowerCase();
@@ -268,10 +355,34 @@ function scoreText(text, keywords) {
 
 function matchChannelDict(channel) {
   if (!channel) return null;
+  // First try raw regex match (preserves the richer original patterns).
   for (const [re, cat] of CHANNEL_DICT) {
     if (re.test(channel)) return cat;
   }
+  // Fall back to normalized substring match — handles emoji/space variants.
+  const norm = normalizeChannelName(channel);
+  if (!norm) return null;
+  for (const [token, cat] of NORMALIZED_CHANNEL_DICT) {
+    if (norm.includes(token)) return cat;
+  }
   return null;
+}
+
+// Memoize per-channel classification. We cap the cache at 15k to cover the 10k-channel
+// target with headroom while avoiding unbounded memory on pathological inputs.
+const CLASSIFY_CACHE = new Map();
+const CACHE_MAX = 15000;
+
+function cacheGet(channel) {
+  return CLASSIFY_CACHE.get(channel);
+}
+function cacheSet(channel, cat) {
+  if (CLASSIFY_CACHE.size >= CACHE_MAX) {
+    // Drop oldest entry (Map preserves insertion order).
+    const firstKey = CLASSIFY_CACHE.keys().next().value;
+    if (firstKey !== undefined) CLASSIFY_CACHE.delete(firstKey);
+  }
+  CLASSIFY_CACHE.set(channel, cat);
 }
 
 /**
@@ -279,9 +390,22 @@ function matchChannelDict(channel) {
  * Returns a category id or 'etc'.
  */
 export function classifyLocally(channel, title = '') {
-  // 1. Famous-channel substring match (highest confidence)
-  const ch = matchChannelDict(channel);
-  if (ch) return ch;
+  // 1. Famous-channel match (highest confidence) with per-channel memoization.
+  if (channel) {
+    const cached = cacheGet(channel);
+    if (cached !== undefined && cached !== null && cached !== '__TITLE__') {
+      return cached;
+    }
+    if (cached !== '__TITLE__') {
+      const ch = matchChannelDict(channel);
+      if (ch) {
+        cacheSet(channel, ch);
+        return ch;
+      }
+      // Mark "no channel-level match" so we skip regex work next time for this channel.
+      cacheSet(channel, '__TITLE__');
+    }
+  }
 
   // 2. Keyword scoring: channel x3 weight, title x1 weight
   const channelText = channel || '';
@@ -298,15 +422,60 @@ export function classifyLocally(channel, title = '') {
   return bestScore > 0 ? bestId : 'etc';
 }
 
+// Build a per-channel category map by scanning all views (channel-level aggregation).
+// For each unique channel, accumulate keyword scores across ALL its titles to pick a
+// category — this is MUCH more accurate than title-by-title when a channel posts a
+// mix of content but has an identifiable theme.
+export function buildChannelCategoryMap(shorts) {
+  const perChannelScores = new Map(); // channel -> { catId -> score }
+  const perChannelTitles = new Map(); // channel -> accumulated title text (sampled)
+
+  for (const s of shorts) {
+    if (!s.channel) continue;
+    const existing = perChannelTitles.get(s.channel);
+    // Cap per-channel title text at ~2000 chars to prevent runaway memory.
+    if (!existing || existing.length < 2000) {
+      perChannelTitles.set(
+        s.channel,
+        existing ? existing + ' ' + (s.title || '') : s.title || ''
+      );
+    }
+  }
+
+  const result = {};
+  for (const [channel, titleBlob] of perChannelTitles.entries()) {
+    // 1. Try dict match first (most reliable).
+    const dictCat = matchChannelDict(channel);
+    if (dictCat) {
+      result[channel] = dictCat;
+      continue;
+    }
+    // 2. Aggregate keyword score across all the channel's titles + channel name.
+    let bestId = null;
+    let bestScore = 0;
+    for (const [id, keywords] of Object.entries(KEYWORDS)) {
+      const s = scoreText(channel, keywords) * 3 + scoreText(titleBlob, keywords);
+      if (s > bestScore) {
+        bestScore = s;
+        bestId = id;
+      }
+    }
+    result[channel] = bestScore > 0 ? bestId : 'etc';
+    // Seed memoization cache too
+    cacheSet(channel, result[channel]);
+  }
+  return result;
+}
+
 export function aggregateCategories(shorts, channelCategoryMap = null) {
+  // Build the channel-level map if not provided — this dramatically improves
+  // accuracy for channels that would otherwise hit "etc" title-by-title.
+  const map = channelCategoryMap || buildChannelCategoryMap(shorts);
+
   const counts = Object.fromEntries(CATEGORIES.map((c) => [c.id, 0]));
   for (const s of shorts) {
-    let cat;
-    if (channelCategoryMap && channelCategoryMap[s.channel]) {
-      cat = channelCategoryMap[s.channel];
-    } else {
-      cat = classifyLocally(s.channel, s.title);
-    }
+    let cat = map[s.channel];
+    if (!cat) cat = classifyLocally(s.channel, s.title);
     if (!(cat in counts)) cat = 'etc';
     counts[cat] += 1;
   }

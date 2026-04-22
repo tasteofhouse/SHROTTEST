@@ -58,7 +58,7 @@ export default function AnalysisProgress({ views, onDone }) {
       setCurrentStep(3);
       setProgress(85);
       await delay(50);
-      const indices = computeIndices(stats, categoryDist, topChannels);
+      const indices = computeIndices(stats, categoryDist, topChannels, views);
       const personality = detectPersonality(categoryDist, stats, {
         top3Share: indices.top3Share,
       });

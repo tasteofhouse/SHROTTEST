@@ -1,9 +1,13 @@
 import { useRef, useState } from 'react';
 import html2canvas from 'html2canvas';
 import {
-  Download, Copy, Check, Link,
+  Download, Copy, Check, Link, Shuffle,
   Sparkles, Receipt, Trophy, IdCard,
   MessageCircle, Stethoscope, NotebookPen, Newspaper,
+  Stamp, Camera, Ticket, Megaphone, MailOpen, Film,
+  UtensilsCrossed, Award, Plane, Disc3, Zap,
+  Tv, Circle, Star, Mail, Crown, Gift,
+  Dice5, Gamepad2, StickyNote, BarChart3, Moon as MoonIcon,
 } from 'lucide-react';
 
 function XIcon({ className }) {
@@ -15,14 +19,36 @@ function XIcon({ className }) {
 }
 
 const VARIANTS = [
-  { id: 'classic',   label: '클래식',  icon: Sparkles },
-  { id: 'profile',   label: '프로필',  icon: MessageCircle },
-  { id: 'diagnosis', label: '진단서',  icon: Stethoscope },
-  { id: 'diary',     label: '다이어리', icon: NotebookPen },
-  { id: 'magazine',  label: '매거진',  icon: Newspaper },
-  { id: 'receipt',   label: '영수증',  icon: Receipt },
-  { id: 'tier',      label: '티어표',  icon: Trophy },
-  { id: 'idcard',    label: '신분증',  icon: IdCard },
+  { id: 'classic',     label: '클래식',    icon: Sparkles },
+  { id: 'profile',     label: '프로필',    icon: MessageCircle },
+  { id: 'diagnosis',   label: '진단서',    icon: Stethoscope },
+  { id: 'diary',       label: '다이어리',  icon: NotebookPen },
+  { id: 'magazine',    label: '매거진',    icon: Newspaper },
+  { id: 'receipt',     label: '영수증',    icon: Receipt },
+  { id: 'tier',        label: '티어표',    icon: Trophy },
+  { id: 'idcard',      label: '신분증',    icon: IdCard },
+  { id: 'stamp',       label: '스탬프',    icon: Stamp },
+  { id: 'polaroid',    label: '폴라로이드', icon: Camera },
+  { id: 'ticket',      label: '티켓',      icon: Ticket },
+  { id: 'notice',      label: '공고문',    icon: Megaphone },
+  { id: 'postcard',    label: '엽서',      icon: MailOpen },
+  { id: 'manga',       label: '만화',      icon: Film },
+  { id: 'menu',        label: '메뉴판',    icon: UtensilsCrossed },
+  { id: 'badge',       label: '뱃지',      icon: Award },
+  { id: 'passport',    label: '여권',      icon: Plane },
+  { id: 'vinyl',       label: '레코드',    icon: Disc3 },
+  { id: 'neon',        label: '네온',      icon: Zap },
+  { id: 'retro',       label: '레트로',    icon: Tv },
+  { id: 'minimal',     label: '미니멀',    icon: Circle },
+  { id: 'glitter',     label: '글리터',    icon: Star },
+  { id: 'envelope',    label: '편지',      icon: Mail },
+  { id: 'wanted',      label: '현상수배',  icon: Crown },
+  { id: 'certificate', label: '상장',      icon: Gift },
+  { id: 'boardgame',   label: '보드게임',  icon: Dice5 },
+  { id: 'arcade',      label: '아케이드',  icon: Gamepad2 },
+  { id: 'stickernote', label: '스티커',    icon: StickyNote },
+  { id: 'chart',       label: '차트',      icon: BarChart3 },
+  { id: 'horoscope',   label: '별자리',    icon: MoonIcon },
 ];
 
 export default function ShareCard({ personality, topCategories, stats, indices }) {
@@ -33,6 +59,12 @@ export default function ShareCard({ personality, topCategories, stats, indices }
   const [variant, setVariant] = useState('classic');
 
   const top3 = (topCategories || []).filter((c) => c.id !== 'etc').slice(0, 3);
+
+  const pickRandomVariant = () => {
+    const others = VARIANTS.filter((v) => v.id !== variant);
+    const next = others[Math.floor(Math.random() * others.length)];
+    setVariant(next.id);
+  };
 
   const shareText =
     `내 YouTube 취향은 ${personality.emoji} ${personality.name}!\n` +
@@ -79,8 +111,29 @@ export default function ShareCard({ personality, topCategories, stats, indices }
         p: personality.id,
         n: personality.name,
         e: personality.emoji,
+        g: personality.gradient,
+        v: personality.vibe,
+        tg: personality.tagline,
         t: stats?.total || 0,
-        top: top3.map((c) => ({ id: c.id, e: c.emoji, l: c.label, r: Math.round(c.ratio * 100) })),
+        a: Math.round((stats?.avgPerDay || 0) * 10) / 10,
+        u: stats?.uniqueChannels || 0,
+        h: stats?.peakHour || 0,
+        d: stats?.peakDay || '',
+        sd: stats?.spanDays || 0,
+        sc: stats?.shortsCount || 0,
+        top: top3.map((c) => ({ id: c.id, e: c.emoji, l: c.label, r: Math.round(c.ratio * 100), c: c.count })),
+        i: indices ? {
+          dopamine: indices.dopamine ?? 0,
+          nocturnal: indices.nocturnal ?? 0,
+          explorer: indices.explorer ?? 0,
+          picky: indices.picky ?? 0,
+          loyalty: indices.loyalty ?? 0,
+          binge: indices.binge ?? 0,
+          weekend: indices.weekend ?? 0,
+          morning: indices.morning ?? 0,
+          shortsness: indices.shortsness ?? 0,
+          steady: indices.steady ?? 0,
+        } : null,
       };
       const hash = btoa(encodeURIComponent(JSON.stringify(payload)));
       const url = `${window.location.origin}${window.location.pathname}#share=${hash}`;
@@ -120,33 +173,28 @@ export default function ShareCard({ personality, topCategories, stats, indices }
         })}
       </div>
 
+      {/* Random picker */}
+      <div className="flex justify-center">
+        <button
+          onClick={pickRandomVariant}
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-bg-elevated border border-zinc-700 text-zinc-200 text-xs hover:bg-zinc-800 transition"
+        >
+          <Shuffle className="w-3.5 h-3.5" />
+          랜덤 (총 {VARIANTS.length}종)
+        </button>
+      </div>
+
       {/* Shareable card */}
       <div className="flex justify-center">
         <div ref={cardRef}>
-          {variant === 'classic' && (
-            <ClassicCard personality={personality} top3={top3} stats={stats} />
-          )}
-          {variant === 'profile' && (
-            <ProfileCard personality={personality} top3={top3} stats={stats} indices={indices} />
-          )}
-          {variant === 'diagnosis' && (
-            <DiagnosisCard personality={personality} top3={top3} stats={stats} indices={indices} />
-          )}
-          {variant === 'diary' && (
-            <DiaryCard personality={personality} top3={top3} stats={stats} indices={indices} />
-          )}
-          {variant === 'magazine' && (
-            <MagazineCard personality={personality} top3={top3} stats={stats} indices={indices} />
-          )}
-          {variant === 'receipt' && (
-            <ReceiptCard personality={personality} top3={top3} stats={stats} indices={indices} />
-          )}
-          {variant === 'tier' && (
-            <TierCard personality={personality} categories={topCategories} stats={stats} />
-          )}
-          {variant === 'idcard' && (
-            <IdCardVariant personality={personality} top3={top3} stats={stats} indices={indices} />
-          )}
+          <VariantSwitch
+            variant={variant}
+            personality={personality}
+            top3={top3}
+            stats={stats}
+            indices={indices}
+            topCategories={topCategories}
+          />
         </div>
       </div>
 
@@ -938,6 +986,1005 @@ function MagazineCard({ personality, top3, stats, indices }) {
 
       <div className="text-center text-[9px] text-white mt-2 font-bold tracking-widest">
         #유튜브매거진 #FACT
+      </div>
+    </div>
+  );
+}
+
+// Exported list of variant ids — used by the share-link view to pick one at random.
+export const VARIANT_IDS = VARIANTS.map((v) => v.id);
+export { VARIANTS };
+
+/* ===================== VARIANT SWITCH ===================== */
+export function VariantSwitch({ variant, personality, top3, stats, indices, topCategories }) {
+  switch (variant) {
+    case 'classic':     return <ClassicCard personality={personality} top3={top3} stats={stats} />;
+    case 'profile':     return <ProfileCard personality={personality} top3={top3} stats={stats} indices={indices} />;
+    case 'diagnosis':   return <DiagnosisCard personality={personality} top3={top3} stats={stats} indices={indices} />;
+    case 'diary':       return <DiaryCard personality={personality} top3={top3} stats={stats} indices={indices} />;
+    case 'magazine':    return <MagazineCard personality={personality} top3={top3} stats={stats} indices={indices} />;
+    case 'receipt':     return <ReceiptCard personality={personality} top3={top3} stats={stats} indices={indices} />;
+    case 'tier':        return <TierCard personality={personality} categories={topCategories} stats={stats} />;
+    case 'idcard':      return <IdCardVariant personality={personality} top3={top3} stats={stats} indices={indices} />;
+    case 'stamp':       return <StampCard personality={personality} top3={top3} stats={stats} />;
+    case 'polaroid':    return <PolaroidCard personality={personality} top3={top3} stats={stats} />;
+    case 'ticket':      return <TicketCard personality={personality} top3={top3} stats={stats} />;
+    case 'notice':      return <NoticeCard personality={personality} top3={top3} stats={stats} indices={indices} />;
+    case 'postcard':    return <PostcardCard personality={personality} top3={top3} stats={stats} />;
+    case 'manga':       return <MangaCard personality={personality} top3={top3} stats={stats} indices={indices} />;
+    case 'menu':        return <MenuCard personality={personality} top3={top3} stats={stats} />;
+    case 'badge':       return <BadgeCard personality={personality} top3={top3} stats={stats} indices={indices} />;
+    case 'passport':    return <PassportCard personality={personality} top3={top3} stats={stats} />;
+    case 'vinyl':       return <VinylCard personality={personality} top3={top3} stats={stats} />;
+    case 'neon':        return <NeonCard personality={personality} top3={top3} stats={stats} />;
+    case 'retro':       return <RetroCard personality={personality} top3={top3} stats={stats} indices={indices} />;
+    case 'minimal':     return <MinimalCard personality={personality} top3={top3} stats={stats} indices={indices} />;
+    case 'glitter':     return <GlitterCard personality={personality} top3={top3} stats={stats} />;
+    case 'envelope':    return <EnvelopeCard personality={personality} top3={top3} stats={stats} />;
+    case 'wanted':      return <WantedCard personality={personality} top3={top3} stats={stats} />;
+    case 'certificate': return <CertificateCard personality={personality} top3={top3} stats={stats} />;
+    case 'boardgame':   return <BoardGameCard personality={personality} top3={top3} stats={stats} indices={indices} />;
+    case 'arcade':      return <ArcadeCard personality={personality} top3={top3} stats={stats} indices={indices} />;
+    case 'stickernote': return <StickerNoteCard personality={personality} top3={top3} stats={stats} />;
+    case 'chart':       return <ChartCard personality={personality} top3={top3} stats={stats} indices={indices} />;
+    case 'horoscope':   return <HoroscopeCard personality={personality} top3={top3} stats={stats} indices={indices} />;
+    default:            return <ClassicCard personality={personality} top3={top3} stats={stats} />;
+  }
+}
+
+/* Helper — a compact footer used across many variants to save space */
+function CompactFooter({ stats, hash = '#ShortsInsight' }) {
+  return (
+    <div className="text-[9px] opacity-70 text-center mt-2">
+      총 {stats?.total?.toLocaleString() || 0}편 · 채널 {stats?.uniqueChannels?.toLocaleString() || 0}개 · {hash}
+    </div>
+  );
+}
+
+/* ===================== VARIANT 9 — STAMP (출석/스탬프 카드) ===================== */
+function StampCard({ personality, top3, stats }) {
+  const stamps = Array.from({ length: 12 }, (_, i) => i + 1);
+  const earned = Math.min(12, Math.max(1, Math.ceil(((stats?.total || 0) / 1000))));
+  return (
+    <div className="w-[320px] rounded-3xl p-5 shadow-glow-lg bg-amber-50 border-4 border-amber-700/60 relative">
+      <div className="text-center mb-3">
+        <div className="text-[10px] tracking-[0.4em] text-amber-800 font-black">YOUTUBE STAMP</div>
+        <h3 className="text-xl font-black text-amber-900 mt-0.5">시청 출석부</h3>
+        <div className="text-[9px] text-amber-700">{new Date().toLocaleDateString('ko-KR')}</div>
+      </div>
+      <div className="bg-white rounded-2xl p-3 border-2 border-amber-300 mb-3 flex items-center gap-2">
+        <div className="text-4xl">{personality.emoji}</div>
+        <div className="flex-1 min-w-0">
+          <div className="text-[10px] text-amber-600 font-bold">유형</div>
+          <div className="text-base font-black text-zinc-900 leading-tight truncate">{personality.name}</div>
+          <div className="text-[10px] text-zinc-600 italic truncate">"{personality.tagline}"</div>
+        </div>
+      </div>
+      <div className="grid grid-cols-4 gap-2 bg-white rounded-2xl p-3 border-2 border-amber-300">
+        {stamps.map((n) => (
+          <div
+            key={n}
+            className={`aspect-square rounded-full border-2 flex items-center justify-center text-xs font-black ${
+              n <= earned
+                ? 'bg-red-500 border-red-700 text-white rotate-[-8deg]'
+                : 'bg-amber-50 border-amber-300 text-amber-300'
+            }`}
+          >
+            {n <= earned ? '✓' : n}
+          </div>
+        ))}
+      </div>
+      <div className="mt-3 text-center text-[10px] text-amber-800 font-bold">
+        {earned}/12 스탬프 · {top3[0] ? `${top3[0].emoji} ${top3[0].label} 단골` : '시청 출석'}
+      </div>
+      <CompactFooter stats={stats} hash="#유튜브출석부" />
+    </div>
+  );
+}
+
+/* ===================== VARIANT 10 — POLAROID ===================== */
+function PolaroidCard({ personality, top3, stats }) {
+  return (
+    <div
+      className="w-[320px] p-4 pb-16 shadow-glow-lg rotate-[-2deg]"
+      style={{ backgroundColor: '#fafaf5' }}
+    >
+      <div
+        className={`aspect-square rounded-sm bg-gradient-to-br ${personality.gradient} flex items-center justify-center relative overflow-hidden`}
+      >
+        <div className="text-[120px] drop-shadow-lg">{personality.emoji}</div>
+        <div
+          className="absolute inset-0 opacity-25 pointer-events-none"
+          style={{
+            backgroundImage:
+              'radial-gradient(circle at 30% 30%, white 0, transparent 55%)',
+          }}
+        />
+        <div className="absolute top-2 right-3 text-white/70 text-[10px] font-mono">
+          {new Date().toLocaleDateString('ko-KR')}
+        </div>
+      </div>
+      <div className="mt-4 text-center">
+        <div className="font-['Noto_Sans_KR',_cursive] text-lg text-zinc-800 font-bold italic">
+          {personality.name}
+        </div>
+        <div className="text-[11px] text-zinc-600 italic mt-0.5">"{personality.tagline}"</div>
+        {top3[0] && (
+          <div className="text-[10px] text-zinc-500 mt-1">
+            {top3[0].emoji} {top3[0].label} · 총 {stats?.total?.toLocaleString() || 0}편
+          </div>
+        )}
+        <div className="text-[9px] text-zinc-400 mt-1 tracking-widest">#INSTA_YT</div>
+      </div>
+    </div>
+  );
+}
+
+/* ===================== VARIANT 11 — MOVIE TICKET ===================== */
+function TicketCard({ personality, top3, stats }) {
+  return (
+    <div className="w-[320px] shadow-glow-lg flex">
+      <div
+        className="flex-1 rounded-l-2xl p-4 text-white relative overflow-hidden"
+        style={{ background: 'linear-gradient(135deg, #6b0f2b, #170921)' }}
+      >
+        <div className="text-[10px] tracking-[0.3em] opacity-80">YOUTUBE CINEMA</div>
+        <div className="text-2xl font-black mt-1 leading-tight">{personality.emoji} {personality.name}</div>
+        <div className="text-[10px] italic opacity-90 mt-1">"{personality.tagline}"</div>
+        <div className="border-t border-white/30 my-2" />
+        <div className="grid grid-cols-2 gap-1 text-[10px]">
+          <div><div className="opacity-60">SCREEN</div><div className="font-bold">#1 MAIN</div></div>
+          <div><div className="opacity-60">DATE</div><div className="font-bold">{new Date().toLocaleDateString('ko-KR')}</div></div>
+          <div><div className="opacity-60">TOTAL</div><div className="font-bold">{stats?.total?.toLocaleString() || 0}편</div></div>
+          <div><div className="opacity-60">AVG/DAY</div><div className="font-bold">{stats?.avgPerDay?.toFixed(1) || 0}</div></div>
+        </div>
+        {top3[0] && (
+          <div className="mt-2 text-[10px] opacity-90">상영: {top3.map((c) => `${c.emoji}${c.label}`).join(' · ')}</div>
+        )}
+      </div>
+      <div
+        className="w-20 rounded-r-2xl p-3 flex flex-col items-center justify-between text-center bg-amber-100 border-l-2 border-dashed border-amber-700"
+        style={{ backgroundImage: 'repeating-linear-gradient(0deg, transparent 0 4px, #00000008 4px 5px)' }}
+      >
+        <div className="text-[9px] text-amber-900 font-black tracking-widest rotate-90 mt-6">ADMIT ONE</div>
+        <div className="text-xl font-black text-amber-900">{personality.emoji}</div>
+        <div className="text-[9px] text-amber-900 font-mono">
+          {String(stats?.total || 0).padStart(5, '0').slice(-5)}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ===================== VARIANT 12 — NOTICE (공고문) ===================== */
+function NoticeCard({ personality, top3, stats, indices }) {
+  const i = indices || {};
+  return (
+    <div className="w-[320px] rounded-2xl p-5 shadow-glow-lg bg-yellow-50 border-4 border-black">
+      <div className="text-center border-b-4 border-double border-black pb-2 mb-3">
+        <div className="text-[10px] tracking-[0.4em] font-black">🚨 긴급 공고문 🚨</div>
+        <div className="text-2xl font-black mt-1">YOUTUBE 시청 경보</div>
+        <div className="text-[9px] text-zinc-600 mt-0.5">발령일 {new Date().toLocaleDateString('ko-KR')}</div>
+      </div>
+      <div className="text-center mb-3">
+        <div className="text-5xl">{personality.emoji}</div>
+        <div className="text-lg font-black mt-1">"{personality.name}" 확인</div>
+      </div>
+      <div className="bg-white border-2 border-black p-3 mb-2">
+        <div className="text-[11px] font-black mb-1">【 시청 현황 】</div>
+        <ul className="text-[11px] space-y-0.5">
+          <li>· 총 시청: <b>{stats?.total?.toLocaleString() || 0}</b>편</li>
+          <li>· 하루 평균: <b>{stats?.avgPerDay?.toFixed(1) || 0}</b>편</li>
+          <li>· 본 채널: <b>{stats?.uniqueChannels?.toLocaleString() || 0}</b>개</li>
+          {top3[0] && <li>· 편식 카테고리: <b>{top3[0].emoji} {top3[0].label}</b> ({Math.round(top3[0].ratio * 100)}%)</li>}
+        </ul>
+      </div>
+      <div className="bg-white border-2 border-black p-3">
+        <div className="text-[11px] font-black mb-1">【 조치 사항 】</div>
+        <ul className="text-[11px] space-y-0.5">
+          <li>1. 도파민 {i.dopamine ?? 0} · 야행성 {i.nocturnal ?? 0} 관찰</li>
+          <li>2. 탐험력 {i.explorer ?? 0} · 충성도 {i.loyalty ?? 0}</li>
+          <li>3. 적정 수면 권장 · 외출 장려</li>
+        </ul>
+      </div>
+      <div className="mt-3 text-center text-[10px] font-black tracking-widest">— YT 공보과 —</div>
+    </div>
+  );
+}
+
+/* ===================== VARIANT 13 — POSTCARD (엽서) ===================== */
+function PostcardCard({ personality, top3, stats }) {
+  return (
+    <div
+      className="w-[320px] aspect-[5/3] rounded-lg p-4 shadow-glow-lg flex relative"
+      style={{
+        background: 'linear-gradient(135deg, #fff5e1, #ffe4c4)',
+        backgroundImage: 'radial-gradient(#00000010 1px, transparent 1px)',
+        backgroundSize: '14px 14px',
+      }}
+    >
+      {/* Left — message */}
+      <div className="flex-1 border-r-2 border-dashed border-amber-700/40 pr-3">
+        <div className="text-[10px] tracking-widest text-amber-800 font-black">FROM YOUTUBE</div>
+        <div className="text-[12px] text-zinc-800 italic mt-1 leading-[18px]">
+          안녕,<br/>
+          여기 알고리즘 나라.<br/>
+          너는 <b>{personality.name}</b>,<br/>
+          "{personality.tagline}"<br/>
+          총 {stats?.total?.toLocaleString() || 0}편 잘 봤어.
+        </div>
+      </div>
+      {/* Right — stamp + address */}
+      <div className="w-24 pl-2 flex flex-col items-end justify-between">
+        <div
+          className={`w-16 h-20 rounded-sm bg-gradient-to-br ${personality.gradient} flex items-center justify-center border-2 border-amber-800`}
+          style={{ backgroundImage: 'repeating-linear-gradient(45deg, transparent 0 4px, #00000015 4px 5px)' }}
+        >
+          <span className="text-3xl drop-shadow">{personality.emoji}</span>
+        </div>
+        <div className="w-full border-t border-amber-700/40 my-1" />
+        <div className="w-full text-right text-[9px] text-amber-900">
+          <div>TO:</div>
+          <div className="font-bold">나의 YouTube</div>
+          <div>{top3[0]?.label || '알고리즘'} 동</div>
+          <div className="tabular-nums">{stats?.peakHour || 0}시 {stats?.peakDay || ''}</div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ===================== VARIANT 14 — MANGA (만화 4컷) ===================== */
+function MangaCard({ personality, top3, stats, indices }) {
+  const i = indices || {};
+  const panels = [
+    { bubble: '오늘 하루도...', img: '😐' },
+    { bubble: `${personality.emoji} ${top3[0]?.emoji || '📱'} 또 켰다`, img: '😏' },
+    { bubble: `어느덧 ${stats?.total?.toLocaleString() || 0}편...?!`, img: '😱' },
+    { bubble: `"${personality.tagline}"`, img: personality.emoji },
+  ];
+  return (
+    <div className="w-[320px] rounded-2xl p-3 shadow-glow-lg bg-white border-4 border-black">
+      <div className="text-center mb-2">
+        <div className="text-[10px] tracking-widest font-black">4컷 만화</div>
+        <div className="text-lg font-black leading-tight">내 YouTube 하루 😅</div>
+      </div>
+      <div className="grid grid-cols-2 gap-1 bg-black p-1">
+        {panels.map((p, idx) => (
+          <div key={idx} className="bg-white aspect-square p-2 flex flex-col justify-between relative">
+            <div className="text-[10px] bg-white border-2 border-black rounded-xl px-2 py-1 leading-tight relative max-w-[90%]">
+              {p.bubble}
+            </div>
+            <div className="text-5xl text-center self-center">{p.img}</div>
+            <div className="absolute bottom-1 right-1 text-[8px] font-black text-zinc-400">{idx + 1}</div>
+          </div>
+        ))}
+      </div>
+      <div className="text-[9px] text-center mt-2 font-bold">
+        도파민 {i.dopamine ?? 0} · 야행성 {i.nocturnal ?? 0} · #내YT만화
+      </div>
+    </div>
+  );
+}
+
+/* ===================== VARIANT 15 — MENU (메뉴판) ===================== */
+function MenuCard({ personality, top3, stats }) {
+  const dishes = top3.length
+    ? top3.map((c, i) => ({
+        name: `${c.emoji} ${c.label} 정식`,
+        desc: ['인기 메뉴', '주방장 추천', '오늘의 특선'][i] || '시그니처',
+        price: `${Math.round(c.ratio * 100)}%`,
+      }))
+    : [{ name: '기본 정식', desc: '주방장 추천', price: '—' }];
+  return (
+    <div className="w-[320px] rounded-3xl p-6 shadow-glow-lg bg-stone-900 text-amber-100 relative">
+      <div className="absolute top-3 left-4 text-2xl">🍽️</div>
+      <div className="absolute top-3 right-4 text-2xl">🕯️</div>
+      <div className="text-center mb-3 border-b-2 border-amber-200/30 pb-2">
+        <div className="text-[10px] tracking-[0.4em] text-amber-300/80">YOUTUBE BISTRO</div>
+        <div className="text-2xl font-serif italic mt-1">오늘의 메뉴</div>
+        <div className="text-[10px] text-amber-300/60 mt-0.5">Chef — {personality.name} {personality.emoji}</div>
+      </div>
+      <ul className="space-y-3">
+        {dishes.map((d, idx) => (
+          <li key={idx} className="flex items-baseline justify-between gap-2">
+            <div className="min-w-0">
+              <div className="text-base font-serif">{d.name}</div>
+              <div className="text-[10px] italic text-amber-200/60">{d.desc}</div>
+            </div>
+            <div className="text-sm font-serif tabular-nums border-b border-dotted border-amber-200/40 flex-1 mx-2" />
+            <div className="text-base font-bold">{d.price}</div>
+          </li>
+        ))}
+      </ul>
+      <div className="border-t-2 border-amber-200/30 mt-3 pt-2 text-[10px] text-amber-200/70 text-center italic">
+        "{personality.tagline}"
+      </div>
+      <div className="text-[9px] text-amber-200/60 text-center mt-1">총 {stats?.total?.toLocaleString() || 0}편 제공</div>
+    </div>
+  );
+}
+
+/* ===================== VARIANT 16 — BADGE (업적) ===================== */
+function BadgeCard({ personality, top3, stats, indices }) {
+  const i = indices || {};
+  const achievements = [
+    { icon: '🔥', label: '도파민', val: i.dopamine ?? 0 },
+    { icon: '🌙', label: '야행성', val: i.nocturnal ?? 0 },
+    { icon: '🧭', label: '탐험가', val: i.explorer ?? 0 },
+    { icon: '🎯', label: '몰입', val: i.picky ?? 0 },
+    { icon: '💖', label: '충성도', val: i.loyalty ?? 0 },
+    { icon: '⚡', label: '폭식', val: i.binge ?? 0 },
+  ];
+  return (
+    <div className="w-[320px] rounded-3xl p-5 shadow-glow-lg bg-indigo-950 border border-indigo-500/40 relative overflow-hidden">
+      <div className="absolute -top-10 -right-10 w-40 h-40 bg-fuchsia-500/20 rounded-full blur-3xl" />
+      <div className="relative z-10">
+        <div className="text-center mb-3">
+          <div className="text-[10px] tracking-[0.4em] text-fuchsia-300 font-black">ACHIEVEMENTS</div>
+          <h3 className="text-xl font-black text-white mt-0.5">내 YT 업적판 🏅</h3>
+        </div>
+        <div
+          className={`rounded-2xl p-3 bg-gradient-to-br ${personality.gradient} flex items-center gap-3 mb-3`}
+        >
+          <div className="text-5xl">{personality.emoji}</div>
+          <div className="flex-1 min-w-0">
+            <div className="text-white font-bold text-sm truncate">{personality.name}</div>
+            <div className="text-white/80 text-[10px]">LV. {Math.min(99, Math.floor((stats?.total || 0) / 100))}</div>
+          </div>
+        </div>
+        <div className="grid grid-cols-3 gap-2">
+          {achievements.map((a, idx) => (
+            <div
+              key={idx}
+              className={`aspect-square rounded-full flex flex-col items-center justify-center text-center border-2 ${
+                a.val >= 60
+                  ? 'border-amber-400 bg-gradient-to-br from-amber-600/30 to-amber-900/30 text-amber-100'
+                  : a.val >= 30
+                  ? 'border-zinc-400 bg-zinc-800 text-zinc-200'
+                  : 'border-zinc-700 bg-zinc-900 text-zinc-500'
+              }`}
+            >
+              <div className="text-2xl">{a.icon}</div>
+              <div className="text-[9px] font-bold">{a.label}</div>
+              <div className="text-[10px] tabular-nums">{a.val}</div>
+            </div>
+          ))}
+        </div>
+        <div className="text-[9px] text-fuchsia-300/70 text-center mt-3 tracking-widest">#YT업적판</div>
+      </div>
+    </div>
+  );
+}
+
+/* ===================== VARIANT 17 — PASSPORT ===================== */
+function PassportCard({ personality, top3, stats }) {
+  return (
+    <div className="w-[320px] rounded-2xl p-5 shadow-glow-lg bg-[#0a1d3a] text-amber-100 relative overflow-hidden">
+      <div className="absolute inset-0 opacity-10 pointer-events-none"
+        style={{ backgroundImage: 'radial-gradient(circle, #ffd700 1px, transparent 1px)', backgroundSize: '18px 18px' }}
+      />
+      <div className="relative z-10">
+        <div className="flex items-center justify-between border-b-2 border-amber-300/40 pb-2 mb-3">
+          <div>
+            <div className="text-[10px] tracking-[0.3em] font-black">PASSPORT</div>
+            <div className="text-[9px] text-amber-300/70">YOUTUBE REPUBLIC</div>
+          </div>
+          <div className="text-3xl">✈️</div>
+        </div>
+        <div className="flex gap-3 mb-3">
+          <div className={`w-20 h-24 rounded-md bg-gradient-to-br ${personality.gradient} flex items-center justify-center border-2 border-amber-300/50`}>
+            <span className="text-5xl drop-shadow-lg">{personality.emoji}</span>
+          </div>
+          <div className="flex-1 min-w-0 text-[11px]">
+            <div className="text-amber-300/70 text-[9px]">SURNAME / 성</div>
+            <div className="font-bold text-base leading-tight truncate">{personality.name}</div>
+            <div className="text-amber-300/70 text-[9px] mt-1">NATIONALITY</div>
+            <div>REPUBLIC OF YOUTUBE</div>
+            <div className="text-amber-300/70 text-[9px] mt-1">DATE OF ISSUE</div>
+            <div className="tabular-nums">{new Date().toLocaleDateString('ko-KR')}</div>
+          </div>
+        </div>
+        <div className="bg-amber-100/10 rounded-md p-2 border border-amber-300/20 text-[10px] space-y-0.5">
+          <div>VISITED · 방문한 카테고리</div>
+          {top3.map((c) => (
+            <div key={c.id} className="flex items-center justify-between">
+              <span>{c.emoji} {c.label}</span>
+              <span className="tabular-nums">{Math.round(c.ratio * 100)}% · STAMP ✓</span>
+            </div>
+          ))}
+        </div>
+        <div className="mt-3 text-[9px] font-mono tabular-nums tracking-widest">
+          P{'<'}YTK{String(stats?.total || 0).padStart(8, '0')}{'<'}{'<'}{'<'}{'<'}{'<'}{'<'}{'<'}{'<'}{'<'}{'<'}{'<'}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ===================== VARIANT 18 — VINYL RECORD ===================== */
+function VinylCard({ personality, top3, stats }) {
+  return (
+    <div className="w-[320px] rounded-3xl p-5 shadow-glow-lg bg-zinc-900 text-white relative overflow-hidden">
+      <div className="flex items-center gap-3">
+        <div className="relative w-32 h-32 rounded-full bg-black border-2 border-zinc-700 flex items-center justify-center shrink-0"
+          style={{
+            backgroundImage:
+              'repeating-radial-gradient(circle at center, #18181b 0 1px, #09090b 1px 2px)',
+          }}
+        >
+          <div className={`w-14 h-14 rounded-full bg-gradient-to-br ${personality.gradient} flex items-center justify-center`}>
+            <span className="text-3xl">{personality.emoji}</span>
+          </div>
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-1.5 h-1.5 rounded-full bg-zinc-500" />
+        </div>
+        <div className="flex-1 min-w-0">
+          <div className="text-[10px] tracking-widest text-zinc-500">LP · SIDE A</div>
+          <div className="text-lg font-black leading-tight truncate">{personality.name}</div>
+          <div className="text-[10px] text-zinc-400 italic truncate">"{personality.tagline}"</div>
+          <div className="text-[9px] text-zinc-500 mt-1">
+            {new Date().getFullYear()} · YT Records
+          </div>
+        </div>
+      </div>
+      <div className="mt-3 bg-zinc-800 rounded-lg p-3 border border-zinc-700">
+        <div className="text-[10px] tracking-widest text-zinc-400 mb-1">🎵 TRACKLIST</div>
+        <ul className="space-y-0.5 text-[11px]">
+          {top3.map((c, idx) => (
+            <li key={c.id} className="flex items-baseline justify-between">
+              <span>
+                <span className="text-zinc-500 tabular-nums mr-2">{String(idx + 1).padStart(2, '0')}</span>
+                {c.emoji} {c.label}
+              </span>
+              <span className="text-zinc-400 tabular-nums">{Math.round(c.ratio * 100)}%</span>
+            </li>
+          ))}
+          <li className="text-zinc-600 text-[10px] italic">... 총 {stats?.total?.toLocaleString() || 0}편 믹스</li>
+        </ul>
+      </div>
+      <div className="text-[9px] text-zinc-600 text-center mt-2 tracking-widest">#내유튜브앨범</div>
+    </div>
+  );
+}
+
+/* ===================== VARIANT 19 — NEON ===================== */
+function NeonCard({ personality, top3, stats }) {
+  return (
+    <div className="w-[320px] rounded-3xl p-6 shadow-glow-lg bg-black text-white relative overflow-hidden">
+      <div className="absolute inset-0 opacity-30" style={{
+        backgroundImage: 'linear-gradient(#00000080 1px, transparent 1px), linear-gradient(90deg, #00000080 1px, transparent 1px)',
+        backgroundSize: '22px 22px',
+      }} />
+      <div className="relative z-10 text-center">
+        <div
+          className="text-[10px] tracking-[0.4em] font-black"
+          style={{ color: '#ff4db5', textShadow: '0 0 8px #ff4db5, 0 0 16px #ff4db5' }}
+        >
+          NEON TOKYO
+        </div>
+        <h3
+          className="text-3xl font-black my-3 leading-tight"
+          style={{ color: '#5ce1ff', textShadow: '0 0 8px #5ce1ff, 0 0 22px #5ce1ff' }}
+        >
+          {personality.name}
+        </h3>
+        <div className="text-6xl mb-2">{personality.emoji}</div>
+        <div
+          className="inline-block px-3 py-1 text-xs font-black tracking-widest rounded"
+          style={{ border: '2px solid #ffb84d', color: '#ffb84d', textShadow: '0 0 6px #ffb84d' }}
+        >
+          "{personality.tagline}"
+        </div>
+        <div className="grid grid-cols-3 gap-2 mt-4">
+          {top3.map((c, idx) => (
+            <div
+              key={c.id}
+              className="rounded-lg p-2"
+              style={{
+                border: '1.5px solid',
+                borderColor: ['#ff4db5', '#5ce1ff', '#ffb84d'][idx],
+                color: ['#ff4db5', '#5ce1ff', '#ffb84d'][idx],
+                textShadow: '0 0 6px currentColor',
+              }}
+            >
+              <div className="text-xl">{c.emoji}</div>
+              <div className="text-[10px] font-black">{c.label}</div>
+              <div className="text-[9px]">{Math.round(c.ratio * 100)}%</div>
+            </div>
+          ))}
+        </div>
+        <div className="text-[9px] text-white/60 mt-3 tracking-widest">
+          총 {stats?.total?.toLocaleString() || 0}편 · #내YT네온
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ===================== VARIANT 20 — RETRO TV ===================== */
+function RetroCard({ personality, top3, stats, indices }) {
+  const i = indices || {};
+  return (
+    <div
+      className="w-[320px] rounded-3xl p-5 shadow-glow-lg"
+      style={{ background: 'linear-gradient(180deg, #2a1810 0%, #1a0f08 100%)' }}
+    >
+      <div className="rounded-2xl p-4 relative overflow-hidden" style={{
+        background: '#0a0a0a',
+        border: '6px solid #d4a373',
+        boxShadow: 'inset 0 0 30px #00000080',
+      }}>
+        {/* scanlines */}
+        <div className="absolute inset-0 pointer-events-none opacity-40"
+          style={{ backgroundImage: 'repeating-linear-gradient(0deg, transparent 0 2px, #ffffff0d 2px 3px)' }}
+        />
+        <div className="relative z-10 text-center">
+          <div className="text-[10px] tracking-[0.4em] text-green-400 font-mono">◉ ON AIR</div>
+          <div className="text-5xl my-2 text-amber-200 drop-shadow">{personality.emoji}</div>
+          <h3 className="text-xl font-black text-amber-100 leading-tight" style={{ fontFamily: 'monospace' }}>
+            {personality.name}
+          </h3>
+          <div className="text-[10px] italic text-amber-300/80 font-mono">"{personality.tagline}"</div>
+          <div className="border-t border-amber-400/30 my-2" />
+          <div className="text-[11px] text-amber-100/80 font-mono space-y-0.5">
+            <div>CH 01 · TOTAL {stats?.total?.toLocaleString() || 0}</div>
+            <div>CH 02 · AVG  {stats?.avgPerDay?.toFixed(1) || 0}/DAY</div>
+            <div>CH 03 · NIGHT {i.nocturnal ?? 0}% · DOPAMINE {i.dopamine ?? 0}</div>
+            {top3[0] && <div>CH 04 · {top3[0].emoji} {top3[0].label.toUpperCase()} {Math.round(top3[0].ratio * 100)}%</div>}
+          </div>
+        </div>
+      </div>
+      <div className="flex items-center justify-center gap-2 mt-3">
+        <div className="w-3 h-3 rounded-full bg-amber-700" />
+        <div className="w-3 h-3 rounded-full bg-amber-900" />
+        <div className="w-3 h-3 rounded-full bg-amber-700" />
+      </div>
+      <div className="text-[9px] text-amber-300/70 text-center mt-2 font-mono tracking-widest">#레트로유튜브</div>
+    </div>
+  );
+}
+
+/* ===================== VARIANT 21 — MINIMAL (흑백) ===================== */
+function MinimalCard({ personality, top3, stats, indices }) {
+  const i = indices || {};
+  return (
+    <div className="w-[320px] rounded-3xl p-7 shadow-glow-lg bg-white text-black relative">
+      <div className="flex items-start justify-between mb-6">
+        <div>
+          <div className="text-[10px] tracking-[0.4em] text-zinc-500">YT TYPE</div>
+          <div className="text-[9px] text-zinc-400 mt-0.5">{new Date().toLocaleDateString('ko-KR')}</div>
+        </div>
+        <div className="w-6 h-6 rounded-full bg-black" />
+      </div>
+      <div className="mb-6">
+        <div className="text-6xl">{personality.emoji}</div>
+        <h3 className="text-3xl font-black leading-tight mt-3">{personality.name}</h3>
+        <div className="text-xs text-zinc-500 italic mt-1">"{personality.tagline}"</div>
+      </div>
+      <div className="space-y-1 text-[11px] border-t border-black pt-3">
+        <Row l="TOTAL" v={`${stats?.total?.toLocaleString() || 0}편`} />
+        <Row l="AVG/DAY" v={`${stats?.avgPerDay?.toFixed(1) || 0}`} />
+        <Row l="CHANNELS" v={`${stats?.uniqueChannels?.toLocaleString() || 0}`} />
+        <Row l="PEAK" v={`${stats?.peakHour || 0}:00 · ${stats?.peakDay || '-'}`} />
+        {top3[0] && <Row l="TOP" v={`${top3[0].emoji} ${top3[0].label} ${Math.round(top3[0].ratio * 100)}%`} />}
+        <Row l="DOPAMINE" v={i.dopamine ?? 0} />
+        <Row l="NOCTURNAL" v={i.nocturnal ?? 0} />
+      </div>
+      <div className="text-[9px] text-zinc-400 mt-4 tracking-widest">— MINIMAL</div>
+    </div>
+  );
+}
+function Row({ l, v }) {
+  return (
+    <div className="flex justify-between border-b border-zinc-200 py-1">
+      <span className="text-zinc-500">{l}</span>
+      <span className="font-bold tabular-nums">{v}</span>
+    </div>
+  );
+}
+
+/* ===================== VARIANT 22 — GLITTER (아이돌 포토카드) ===================== */
+function GlitterCard({ personality, top3, stats }) {
+  return (
+    <div className="w-[320px] rounded-[28px] p-0.5 shadow-glow-lg"
+      style={{ background: 'conic-gradient(from 0deg, #ff80ab, #64b5f6, #ffd54f, #81c784, #ff80ab)' }}
+    >
+      <div className="rounded-[26px] p-5 relative overflow-hidden"
+        style={{
+          background: 'linear-gradient(135deg, #fff0f5 0%, #e3f2fd 50%, #fff3e0 100%)',
+          backgroundImage: 'radial-gradient(#ffffff90 1px, transparent 1.5px)',
+          backgroundSize: '10px 10px',
+        }}
+      >
+        <div className="absolute top-2 left-3 text-lg">✨</div>
+        <div className="absolute top-4 right-4 text-sm">♡</div>
+        <div className="absolute bottom-20 left-5 text-lg">⭐</div>
+        <div className="absolute bottom-4 right-6 text-sm">💖</div>
+
+        <div className="text-center">
+          <div className="text-[10px] tracking-[0.3em] font-black text-fuchsia-500">♡ PHOTOCARD ♡</div>
+          <div className={`mx-auto mt-2 w-28 h-36 rounded-xl bg-gradient-to-br ${personality.gradient} flex items-center justify-center border-4 border-white shadow-md`}>
+            <span className="text-6xl drop-shadow-lg">{personality.emoji}</span>
+          </div>
+          <h3 className="text-xl font-black text-zinc-800 mt-2 leading-tight">{personality.name}</h3>
+          <div className="text-[10px] text-fuchsia-500 font-bold">#{personality.vibe || 'MY_TYPE'}</div>
+          <div className="text-[11px] text-zinc-600 italic mt-1">"{personality.tagline}"</div>
+          {top3[0] && (
+            <div className="inline-flex gap-1 mt-2 flex-wrap justify-center">
+              {top3.map((c) => (
+                <span key={c.id} className="px-2 py-0.5 rounded-full bg-white/80 border border-pink-200 text-[10px]">
+                  {c.emoji} {c.label}
+                </span>
+              ))}
+            </div>
+          )}
+          <div className="text-[9px] text-fuchsia-400 mt-2 font-bold">
+            MEMBER 01 · {stats?.total?.toLocaleString() || 0}편
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ===================== VARIANT 23 — ENVELOPE (편지) ===================== */
+function EnvelopeCard({ personality, top3, stats }) {
+  return (
+    <div className="w-[320px] rounded-xl p-5 shadow-glow-lg relative"
+      style={{ background: '#fdfaf3', border: '2px dashed #c2a16a' }}
+    >
+      {/* seal */}
+      <div className="absolute -top-4 left-1/2 -translate-x-1/2 w-10 h-10 rounded-full bg-rose-600 flex items-center justify-center shadow-md border-2 border-rose-800">
+        <span className="text-white text-xl">💌</span>
+      </div>
+      <div className="mt-3 text-center mb-3">
+        <div className="text-[10px] tracking-widest text-rose-700 font-black">알고리즘이 보낸 편지</div>
+        <div className="text-xs text-zinc-500">{new Date().toLocaleDateString('ko-KR')}</div>
+      </div>
+      <div className="bg-white rounded-lg p-4 border border-rose-200 text-[12px] text-zinc-800 leading-[20px] italic"
+        style={{
+          backgroundImage: 'linear-gradient(#fce7f3 1px, transparent 1px)',
+          backgroundSize: '100% 20px',
+        }}
+      >
+        <p>친애하는 시청자께,</p>
+        <p className="mt-1">
+          귀하의 취향을 오래 지켜봤습니다. <b>{personality.emoji} {personality.name}</b>,
+          당신의 본질은 이 한 문장에 있습니다:
+        </p>
+        <p className="mt-1 text-center font-bold">"{personality.tagline}"</p>
+        <p className="mt-1">
+          지금까지 <b>{stats?.total?.toLocaleString() || 0}편</b>을 함께했고,
+          {top3[0] && <> 특히 <b>{top3[0].emoji} {top3[0].label}</b>을 {Math.round(top3[0].ratio * 100)}% 사랑하셨죠.</>}
+        </p>
+        <p className="mt-1 text-right">— 알고리즘 드림</p>
+      </div>
+      <div className="text-[9px] text-rose-500 text-center mt-2 font-bold">#YT러브레터</div>
+    </div>
+  );
+}
+
+/* ===================== VARIANT 24 — WANTED ===================== */
+function WantedCard({ personality, top3, stats }) {
+  return (
+    <div className="w-[320px] p-5 shadow-glow-lg relative"
+      style={{
+        backgroundColor: '#e8d9a8',
+        backgroundImage:
+          'radial-gradient(#8b6914 0.6px, transparent 0.8px), radial-gradient(#5a3e0a 0.4px, transparent 0.6px)',
+        backgroundSize: '22px 22px, 33px 33px',
+        border: '6px double #5a3e0a',
+      }}
+    >
+      <div className="text-center" style={{ color: '#3a2400', fontFamily: 'serif' }}>
+        <div className="text-[28px] font-black tracking-[0.15em] leading-none">WANTED</div>
+        <div className="text-[10px] tracking-[0.3em] mt-1">DEAD · ALIVE · BINGE-WATCHING</div>
+      </div>
+      <div
+        className="my-3 mx-auto w-40 h-40 rounded-lg flex items-center justify-center border-4 border-amber-900"
+        style={{
+          background: 'repeating-linear-gradient(45deg, #d4c088 0 8px, #c7b17a 8px 10px)',
+        }}
+      >
+        <span className="text-7xl drop-shadow-lg">{personality.emoji}</span>
+      </div>
+      <div className="text-center" style={{ color: '#3a2400', fontFamily: 'serif' }}>
+        <div className="text-xl font-black leading-tight">"{personality.name}"</div>
+        <div className="text-[10px] italic mt-1">aka "{personality.tagline}"</div>
+        <div className="text-[28px] font-black mt-2">REWARD</div>
+        <div className="text-2xl font-black">${(stats?.total || 0).toLocaleString()} 편</div>
+        <div className="text-[10px] mt-1">LAST SEEN · {stats?.peakHour || 0}시 {stats?.peakDay || ''}요일</div>
+        {top3[0] && <div className="text-[10px]">HIDEOUT · {top3[0].emoji} {top3[0].label}</div>}
+        <div className="text-[9px] tracking-widest mt-2">#YT현상수배</div>
+      </div>
+    </div>
+  );
+}
+
+/* ===================== VARIANT 25 — CERTIFICATE (상장) ===================== */
+function CertificateCard({ personality, top3, stats }) {
+  return (
+    <div className="w-[320px] p-5 shadow-glow-lg relative"
+      style={{
+        background: '#fffdf5',
+        border: '10px double #c9a13b',
+      }}
+    >
+      <div className="text-center text-amber-900" style={{ fontFamily: 'serif' }}>
+        <div className="text-4xl mb-1">🏆</div>
+        <div className="text-[10px] tracking-[0.5em] font-black">CERTIFICATE</div>
+        <div className="text-2xl italic font-black mt-1">YouTube Laureate</div>
+        <div className="text-[10px] italic mt-1">— 수 여 증 —</div>
+      </div>
+      <div className="my-3 text-center text-zinc-800 leading-relaxed" style={{ fontFamily: 'serif' }}>
+        <div className="text-[11px]">위 사람은 아래와 같이</div>
+        <div className="text-lg font-black mt-1">{personality.emoji} {personality.name}</div>
+        <div className="text-[10px] italic text-amber-800">"{personality.tagline}"</div>
+        <div className="text-[11px] mt-2">
+          칭호를 획득하였으므로<br />이 상장을 수여함
+        </div>
+      </div>
+      <div className="bg-amber-50 rounded border border-amber-200 p-2 text-[10px] text-center space-y-0.5 my-2">
+        <div>총 시청 <b>{stats?.total?.toLocaleString() || 0}</b>편 · 채널 <b>{stats?.uniqueChannels?.toLocaleString() || 0}</b>개</div>
+        {top3[0] && <div>주 분야: {top3[0].emoji} {top3[0].label} ({Math.round(top3[0].ratio * 100)}%)</div>}
+      </div>
+      <div className="flex items-end justify-between text-[10px] text-amber-900 mt-3" style={{ fontFamily: 'serif' }}>
+        <div>
+          <div>{new Date().toLocaleDateString('ko-KR')}</div>
+          <div className="text-[9px]">발행일</div>
+        </div>
+        <div className="text-right">
+          <div className="text-2xl">🖋️</div>
+          <div className="text-[9px]">YT 학장 직인</div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ===================== VARIANT 26 — BOARD GAME CARD ===================== */
+function BoardGameCard({ personality, top3, stats, indices }) {
+  const i = indices || {};
+  return (
+    <div className="w-[320px] rounded-2xl p-1 shadow-glow-lg"
+      style={{ background: 'linear-gradient(135deg, #b91c1c, #7f1d1d)' }}
+    >
+      <div className="rounded-xl p-4 bg-stone-100 border-4 border-amber-900">
+        <div className="flex items-center justify-between">
+          <div className="text-[10px] tracking-widest font-black text-amber-900">LEGENDARY · ★★★★★</div>
+          <div className="text-[10px] font-black bg-amber-900 text-stone-100 px-2 py-0.5">
+            LV.{Math.min(99, Math.floor((stats?.total || 0) / 100))}
+          </div>
+        </div>
+        <div className="text-center mt-2">
+          <h3 className="text-lg font-black text-amber-900 leading-tight">{personality.name}</h3>
+          <div className="text-[10px] italic text-amber-800">"{personality.tagline}"</div>
+        </div>
+        <div className={`my-3 aspect-square rounded-lg bg-gradient-to-br ${personality.gradient} flex items-center justify-center border-2 border-amber-900`}>
+          <span className="text-8xl drop-shadow-lg">{personality.emoji}</span>
+        </div>
+        <div className="bg-white rounded border border-amber-900 p-2 text-[10px] text-zinc-800 space-y-1">
+          <div className="font-black text-amber-900">【 능력치 】</div>
+          <div className="grid grid-cols-2 gap-x-2 gap-y-0.5">
+            <span>ATK 도파민</span><span className="font-bold tabular-nums text-right">{i.dopamine ?? 0}</span>
+            <span>DEF 규칙성</span><span className="font-bold tabular-nums text-right">{i.steady ?? 0}</span>
+            <span>SPD 폭식</span><span className="font-bold tabular-nums text-right">{i.binge ?? 0}</span>
+            <span>INT 탐험력</span><span className="font-bold tabular-nums text-right">{i.explorer ?? 0}</span>
+          </div>
+          <div className="border-t border-amber-200 pt-1">
+            <span className="font-black text-amber-900">【 필살기 】</span>{' '}
+            {top3[0] ? `${top3[0].label} 소환 (${Math.round(top3[0].ratio * 100)}% 확률)` : '알고리즘 파괴광선'}
+          </div>
+        </div>
+        <div className="text-[9px] text-center text-amber-800 mt-2 tracking-widest">#YT카드게임</div>
+      </div>
+    </div>
+  );
+}
+
+/* ===================== VARIANT 27 — ARCADE (8bit) ===================== */
+function ArcadeCard({ personality, top3, stats, indices }) {
+  const i = indices || {};
+  return (
+    <div className="w-[320px] rounded-lg p-4 shadow-glow-lg"
+      style={{
+        background: '#000',
+        fontFamily: '"Press Start 2P", "Courier New", monospace',
+        imageRendering: 'pixelated',
+      }}
+    >
+      <div className="text-center" style={{ color: '#ffcc00' }}>
+        <div className="text-[11px] tracking-[0.2em]">★ HIGH SCORE ★</div>
+        <div className="text-2xl font-black mt-1" style={{ color: '#ff3366' }}>
+          {String(stats?.total || 0).padStart(8, '0')}
+        </div>
+      </div>
+      <div className="my-3 p-3 rounded text-center"
+        style={{
+          background: '#111',
+          border: '2px solid #5cff5c',
+          boxShadow: 'inset 0 0 20px #5cff5c40',
+        }}
+      >
+        <div className="text-5xl">{personality.emoji}</div>
+        <div className="text-sm font-black mt-1" style={{ color: '#5cff5c' }}>
+          {personality.name.toUpperCase()}
+        </div>
+        <div className="text-[9px] mt-1" style={{ color: '#ffff80' }}>
+          "{personality.tagline}"
+        </div>
+      </div>
+      <div className="text-[10px] space-y-0.5" style={{ color: '#80dfff' }}>
+        <div>DAYS &gt; {stats?.spanDays || 0}</div>
+        <div>AVG  &gt; {stats?.avgPerDay?.toFixed(1) || 0}/D</div>
+        <div>CHS  &gt; {stats?.uniqueChannels?.toLocaleString() || 0}</div>
+        <div>NITE &gt; {i.nocturnal ?? 0}%</div>
+        {top3[0] && <div>BOSS &gt; {top3[0].label.toUpperCase()}</div>}
+      </div>
+      <div className="mt-3 text-center text-[10px]" style={{ color: '#ff3366' }}>
+        &gt; PRESS START &lt;
+      </div>
+      <div className="text-[8px] text-center mt-1" style={{ color: '#666' }}>
+        #YT아케이드
+      </div>
+    </div>
+  );
+}
+
+/* ===================== VARIANT 28 — STICKER NOTE ===================== */
+function StickerNoteCard({ personality, top3, stats }) {
+  const notes = [
+    { bg: '#fff59d', rot: '-3deg', txt: `${personality.emoji} ${personality.name}` },
+    { bg: '#ffccbc', rot: '2deg', txt: `"${personality.tagline}"` },
+    { bg: '#c8e6c9', rot: '-1deg', txt: `총 ${stats?.total?.toLocaleString() || 0}편` },
+    { bg: '#b3e5fc', rot: '3deg', txt: `하루 ${stats?.avgPerDay?.toFixed(1) || 0}편` },
+    { bg: '#e1bee7', rot: '-2deg', txt: `채널 ${stats?.uniqueChannels?.toLocaleString() || 0}개` },
+  ];
+  const categoryNotes = top3.map((c, idx) => ({
+    bg: ['#ffab91', '#90caf9', '#a5d6a7'][idx],
+    rot: `${(idx - 1) * 4}deg`,
+    txt: `${c.emoji} ${c.label} ${Math.round(c.ratio * 100)}%`,
+  }));
+
+  return (
+    <div className="w-[320px] rounded-2xl p-5 shadow-glow-lg"
+      style={{
+        background: '#f5efe0',
+        backgroundImage:
+          'linear-gradient(#d7ccb0 1px, transparent 1px), linear-gradient(90deg, #d7ccb0 1px, transparent 1px)',
+        backgroundSize: '20px 20px',
+      }}
+    >
+      <div className="text-center mb-3">
+        <div className="text-[10px] tracking-[0.3em] text-zinc-600 font-black">MY STICKY BOARD</div>
+        <h3 className="text-lg font-black text-zinc-800">내 취향 메모판 📌</h3>
+      </div>
+      <div className="space-y-2">
+        {[...notes, ...categoryNotes].map((n, idx) => (
+          <div
+            key={idx}
+            className="px-3 py-2 text-sm font-bold text-zinc-900 shadow-md"
+            style={{
+              background: n.bg,
+              transform: `rotate(${n.rot})`,
+              fontFamily: 'Comic Sans MS, cursive',
+            }}
+          >
+            {n.txt}
+          </div>
+        ))}
+      </div>
+      <div className="text-[9px] text-zinc-500 text-center mt-3 tracking-widest">#YT포스트잇</div>
+    </div>
+  );
+}
+
+/* ===================== VARIANT 29 — CHART (인포그래픽) ===================== */
+function ChartCard({ personality, top3, stats, indices }) {
+  const i = indices || {};
+  const bars = [
+    { label: '도파민', val: i.dopamine ?? 0, c: '#ef4444' },
+    { label: '야행성', val: i.nocturnal ?? 0, c: '#6366f1' },
+    { label: '탐험력', val: i.explorer ?? 0, c: '#14b8a6' },
+    { label: '취향집중', val: i.picky ?? 0, c: '#ec4899' },
+    { label: '충성도', val: i.loyalty ?? 0, c: '#f97316' },
+    { label: '폭식형', val: i.binge ?? 0, c: '#eab308' },
+    { label: '주말러', val: i.weekend ?? 0, c: '#0ea5e9' },
+    { label: '아침형', val: i.morning ?? 0, c: '#fbbf24' },
+    { label: '쇼츠력', val: i.shortsness ?? 0, c: '#22c55e' },
+    { label: '규칙성', val: i.steady ?? 0, c: '#8b5cf6' },
+  ];
+  return (
+    <div className="w-[320px] rounded-2xl p-5 shadow-glow-lg bg-white text-zinc-900">
+      <div className="flex items-center gap-3 mb-3">
+        <div className={`w-14 h-14 rounded-lg bg-gradient-to-br ${personality.gradient} flex items-center justify-center shrink-0`}>
+          <span className="text-3xl">{personality.emoji}</span>
+        </div>
+        <div className="min-w-0">
+          <div className="text-[10px] tracking-widest text-zinc-500">YT ANALYTICS</div>
+          <div className="font-black leading-tight truncate">{personality.name}</div>
+          <div className="text-[10px] text-zinc-500 italic truncate">"{personality.tagline}"</div>
+        </div>
+      </div>
+      <div className="space-y-1.5">
+        {bars.map((b, idx) => (
+          <div key={idx} className="flex items-center gap-2">
+            <div className="w-14 text-[10px] font-bold text-zinc-600 shrink-0">{b.label}</div>
+            <div className="flex-1 h-4 bg-zinc-100 rounded-sm overflow-hidden">
+              <div className="h-full" style={{ width: `${b.val}%`, background: b.c }} />
+            </div>
+            <div className="w-7 text-[10px] tabular-nums text-right font-bold">{b.val}</div>
+          </div>
+        ))}
+      </div>
+      <div className="grid grid-cols-3 gap-2 mt-3 text-center">
+        <div className="bg-zinc-100 rounded p-2">
+          <div className="text-[9px] text-zinc-500">TOTAL</div>
+          <div className="text-sm font-black">{stats?.total?.toLocaleString() || 0}</div>
+        </div>
+        <div className="bg-zinc-100 rounded p-2">
+          <div className="text-[9px] text-zinc-500">AVG/DAY</div>
+          <div className="text-sm font-black">{stats?.avgPerDay?.toFixed(1) || 0}</div>
+        </div>
+        <div className="bg-zinc-100 rounded p-2">
+          <div className="text-[9px] text-zinc-500">CHANNELS</div>
+          <div className="text-sm font-black">{stats?.uniqueChannels?.toLocaleString() || 0}</div>
+        </div>
+      </div>
+      <div className="text-[9px] text-zinc-400 text-center mt-2 tracking-widest">#YT인포그래픽</div>
+    </div>
+  );
+}
+
+/* ===================== VARIANT 30 — HOROSCOPE (별자리 운세) ===================== */
+function HoroscopeCard({ personality, top3, stats, indices }) {
+  const i = indices || {};
+  const lucky = ((stats?.total || 0) % 9) + 1;
+  const luckyDir = ['북', '북동', '동', '남동', '남', '남서', '서', '북서'][(stats?.peakHour || 0) % 8];
+  return (
+    <div className="w-[320px] rounded-3xl p-5 shadow-glow-lg relative overflow-hidden"
+      style={{ background: 'linear-gradient(160deg, #0f172a 0%, #1e1b4b 60%, #3b0764 100%)' }}
+    >
+      {/* stars */}
+      <div className="absolute inset-0 pointer-events-none"
+        style={{ backgroundImage: 'radial-gradient(#ffffff70 0.8px, transparent 1.5px), radial-gradient(#ffffff40 0.5px, transparent 1px)', backgroundSize: '26px 26px, 17px 17px' }}
+      />
+      <div className="relative z-10 text-indigo-100">
+        <div className="text-center">
+          <div className="text-[10px] tracking-[0.4em] font-black text-amber-300">✦ YT HOROSCOPE ✦</div>
+          <div className="text-[10px] italic mt-0.5 text-indigo-300">{new Date().toLocaleDateString('ko-KR')}</div>
+        </div>
+        <div className="mt-3 bg-indigo-950/60 rounded-2xl p-3 border border-indigo-400/30 text-center">
+          <div className="text-5xl">{personality.emoji}</div>
+          <div className="text-lg font-black mt-1 leading-tight">{personality.name}</div>
+          <div className="text-[10px] italic text-indigo-200">"{personality.tagline}"</div>
+        </div>
+        <div className="mt-3 space-y-1 text-[11px] leading-[18px]">
+          <p>
+            <b className="text-amber-300">💫 오늘의 운세:</b>{' '}
+            {i.dopamine >= 60
+              ? '폭풍 같은 도파민이 몰려온다. 쇼츠는 그만!'
+              : i.explorer >= 60
+              ? '새로운 채널과의 운명적 만남이 기다린다.'
+              : '알고리즘이 당신을 특별히 총애하는 날.'}
+          </p>
+          <p>
+            <b className="text-amber-300">🌙 주의:</b>{' '}
+            {i.nocturnal >= 35 ? '새벽 3시의 연속재생을 경계하세요.' : '오후 6시경 한눈팔지 않도록.'}
+          </p>
+          <p>
+            <b className="text-amber-300">✨ 행운의 방향:</b> {luckyDir}쪽 {stats?.peakDay || '오늘'}요일
+          </p>
+          <p>
+            <b className="text-amber-300">🔢 행운의 숫자:</b> {lucky}
+          </p>
+          {top3[0] && (
+            <p>
+              <b className="text-amber-300">🎬 행운의 장르:</b> {top3[0].emoji} {top3[0].label}
+            </p>
+          )}
+        </div>
+        <div className="text-[9px] text-indigo-300/70 text-center mt-3 tracking-widest">#YT점성술</div>
       </div>
     </div>
   );

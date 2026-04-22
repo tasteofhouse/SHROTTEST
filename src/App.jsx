@@ -1,39 +1,104 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import LandingPage from './components/LandingPage';
 import FileUpload from './components/FileUpload';
 import AnalysisProgress from './components/AnalysisProgress';
 import Dashboard from './components/Dashboard';
-import { Play, Info } from 'lucide-react';
+import { VariantSwitch, VARIANT_IDS } from './components/ShareCard';
+import { Play, Info, Shuffle, ExternalLink } from 'lucide-react';
 import './App.css';
 
-// Shared result view shown when someone opens a shared link
+// Build synthetic personality/stats/top3/indices objects from a compact shared payload
+function hydratePayload(payload) {
+  if (!payload) return null;
+  const personality = {
+    id: payload.p,
+    name: payload.n,
+    emoji: payload.e,
+    gradient: payload.g || 'from-rose-500 to-pink-500',
+    vibe: payload.v || '',
+    tagline: payload.tg || '',
+    description: payload.tg || '',
+  };
+  const stats = {
+    total: payload.t || 0,
+    avgPerDay: payload.a || 0,
+    uniqueChannels: payload.u || 0,
+    peakHour: payload.h || 0,
+    peakDay: payload.d || '',
+    spanDays: payload.sd || 0,
+    shortsCount: payload.sc || 0,
+    maxDayCount: 0,
+    maxDayDate: null,
+  };
+  const top3 = (payload.top || []).map((c) => ({
+    id: c.id,
+    emoji: c.e,
+    label: c.l,
+    ratio: (c.r || 0) / 100,
+    count: c.c || 0,
+  }));
+  // For TierCard (uses full category list) — synthesize from top3 plus "기타"
+  const topCategories = [...top3];
+  const indices = payload.i || {
+    dopamine: 0, nocturnal: 0, explorer: 0, picky: 0, loyalty: 0,
+    binge: 0, weekend: 0, morning: 0, shortsness: 0, steady: 0,
+  };
+  return { personality, stats, top3, topCategories, indices };
+}
+
+// Shared result view — picks 1 of 30 variants at random (seeded by payload or fresh)
 function SharedResultView({ payload, onStart }) {
+  const data = useMemo(() => hydratePayload(payload), [payload]);
+  const [variant, setVariant] = useState(() => {
+    return VARIANT_IDS[Math.floor(Math.random() * VARIANT_IDS.length)];
+  });
+
+  if (!data) return null;
+
+  const reshuffle = () => {
+    const others = VARIANT_IDS.filter((v) => v !== variant);
+    setVariant(others[Math.floor(Math.random() * others.length)]);
+  };
+
   return (
-    <div className="min-h-[calc(100vh-80px)] flex flex-col items-center justify-center px-6 py-12 text-center">
+    <div className="min-h-[calc(100vh-80px)] flex flex-col items-center justify-center px-6 py-10 text-center">
       <div className="w-full max-w-sm space-y-5">
-        <p className="text-xs text-zinc-500 tracking-wider">친구의 YouTube 취향</p>
-        <div className="text-7xl">{payload.e}</div>
-        <h2 className="text-3xl font-bold text-zinc-100">{payload.n}</h2>
-        {payload.top?.length > 0 && (
-          <div className="flex flex-col gap-2">
-            {payload.top.map((c) => (
-              <div
-                key={c.id}
-                className="flex items-center justify-between px-4 py-2 rounded-xl bg-bg-card border border-zinc-800"
-              >
-                <span className="text-sm text-zinc-300">{c.e} {c.l}</span>
-                <span className="text-sm font-semibold text-zinc-100">{c.r}%</span>
-              </div>
-            ))}
-          </div>
-        )}
-        <p className="text-xs text-zinc-500">총 {payload.t?.toLocaleString()}편 시청</p>
-        <button
-          onClick={onStart}
-          className="w-full py-3 rounded-2xl bg-grad-yt text-white font-bold shadow-glow hover:opacity-90 transition"
-        >
-          나도 테스트해보기
-        </button>
+        <div>
+          <p className="text-xs text-zinc-500 tracking-wider">친구의 YouTube 취향</p>
+          <p className="text-[10px] text-zinc-600 mt-0.5">랜덤으로 고른 카드 · 총 {VARIANT_IDS.length}종</p>
+        </div>
+
+        <div className="flex justify-center">
+          <VariantSwitch
+            variant={variant}
+            personality={data.personality}
+            top3={data.top3}
+            stats={data.stats}
+            indices={data.indices}
+            topCategories={data.topCategories}
+          />
+        </div>
+
+        <div className="grid grid-cols-2 gap-2">
+          <button
+            onClick={reshuffle}
+            className="inline-flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-xl bg-bg-elevated border border-zinc-700 text-zinc-100 text-sm hover:bg-zinc-800 transition"
+          >
+            <Shuffle className="w-4 h-4" />
+            다른 카드 보기
+          </button>
+          <button
+            onClick={onStart}
+            className="inline-flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-xl bg-grad-yt text-white text-sm font-bold shadow-glow hover:opacity-90 transition"
+          >
+            <ExternalLink className="w-4 h-4" />
+            나도 테스트
+          </button>
+        </div>
+
+        <p className="text-[10px] text-zinc-600">
+          새로고침하면 다른 스타일의 카드가 나와요
+        </p>
       </div>
     </div>
   );

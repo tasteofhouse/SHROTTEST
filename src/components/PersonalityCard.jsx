@@ -1,10 +1,19 @@
-import { Sparkles, Flame, Moon, Compass, Target } from 'lucide-react';
+import {
+  Sparkles, Flame, Moon, Compass, Target, Heart,
+  Zap, Calendar, Sunrise, Smartphone, Repeat,
+} from 'lucide-react';
 
 const INDEX_META = [
-  { key: 'dopamine',  label: '도파민',   icon: Flame,   bar: 'from-red-400 to-orange-300' },
-  { key: 'nocturnal', label: '야행성',   icon: Moon,    bar: 'from-indigo-300 to-purple-300' },
-  { key: 'explorer',  label: '탐험력',   icon: Compass, bar: 'from-teal-300 to-cyan-300' },
-  { key: 'picky',     label: '취향 집중', icon: Target,  bar: 'from-pink-300 to-rose-300' },
+  { key: 'dopamine',   label: '도파민',    icon: Flame,      bar: 'from-red-400 to-orange-300' },
+  { key: 'nocturnal',  label: '야행성',    icon: Moon,       bar: 'from-indigo-300 to-purple-300' },
+  { key: 'explorer',   label: '탐험력',    icon: Compass,    bar: 'from-teal-300 to-cyan-300' },
+  { key: 'picky',      label: '취향집중',  icon: Target,     bar: 'from-pink-300 to-rose-300' },
+  { key: 'loyalty',    label: '충성도',    icon: Heart,      bar: 'from-rose-400 to-fuchsia-300' },
+  { key: 'binge',      label: '폭식형',    icon: Zap,        bar: 'from-yellow-300 to-amber-400' },
+  { key: 'weekend',    label: '주말러',    icon: Calendar,   bar: 'from-sky-300 to-blue-400' },
+  { key: 'morning',    label: '아침형',    icon: Sunrise,    bar: 'from-amber-200 to-yellow-300' },
+  { key: 'shortsness', label: '쇼츠력',    icon: Smartphone, bar: 'from-lime-300 to-emerald-300' },
+  { key: 'steady',     label: '규칙성',    icon: Repeat,     bar: 'from-violet-300 to-indigo-300' },
 ];
 
 export default function PersonalityCard({ personality, stats, topCategories, indices }) {
@@ -68,7 +77,7 @@ export default function PersonalityCard({ personality, stats, topCategories, ind
         )}
 
         {indices && (
-          <div className="mt-4 w-full max-w-md grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div className="mt-4 w-full max-w-md grid grid-cols-2 gap-2">
             {INDEX_META.map(({ key, label, icon: Icon, bar }) => (
               <IndexBar
                 key={key}
