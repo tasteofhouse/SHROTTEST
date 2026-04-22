@@ -41,7 +41,7 @@ export default function AnalysisProgress({ views, onDone }) {
       setCurrentStep(1);
       setProgress(35);
       await delay(50); // yield to paint
-      const topChannels = analyzeTopChannels(views, 12);
+      const topChannels = analyzeTopChannels(views, 25);
       const categoryDist = aggregateCategories(views);
       await delay(400);
 
@@ -76,7 +76,7 @@ export default function AnalysisProgress({ views, onDone }) {
         stats,
         heatmap,
         trend,
-        topChannels: topChannels.slice(0, 5),
+        topChannels: topChannels.slice(0, 20),
         indices,
         personality,
         insights,

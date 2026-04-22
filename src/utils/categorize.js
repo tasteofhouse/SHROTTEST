@@ -12,6 +12,8 @@ export const CATEGORIES = [
   { id: 'education', label: '교육/지식',   emoji: '📚', color: '#06B6D4' },
   { id: 'lifestyle', label: '뷰티/라이프', emoji: '💄', color: '#F472B6' },
   { id: 'tech',      label: 'IT/테크',     emoji: '💻', color: '#60A5FA' },
+  { id: 'kids',      label: '키즈/애니',   emoji: '🧒', color: '#A5B4FC' },
+  { id: 'asmr',      label: 'ASMR/힐링',   emoji: '😴', color: '#D8B4FE' },
   { id: 'etc',       label: '기타',        emoji: '🌀', color: '#9CA3AF' },
 ];
 
@@ -180,6 +182,19 @@ const CHANNEL_DICT = [
   // Animal extras
   [/팅슈롤|팅슈랜드|우주TV|꼬부기|보단이네|내가고양이|집사 일상|반려견 훈련|강형욱|개통령|개를부탁해|동물의왕국|동물농장|SBS 동물|펫TV|펫피커|일산펫빌리지/i, 'animal'],
   [/Zoo|World|National Geographic|내셔널지오그래픽|BBC Earth|Animal Planet|애니멀플래닛|Wild Life|야생동물|다큐 동물|동물 다큐|자연 다큐|DMZ 야생|멸종위기|SBS 생태/i, 'animal'],
+
+  // ════════════════════════════════════════════════════════════
+  // 🧒 KIDS / ANIMATION
+  // ════════════════════════════════════════════════════════════
+  [/뽀로로|Pororo|핑크퐁|Pinkfong|아기상어|Baby Shark|콩순이|또봇|타요|뿡뿡이|꼬마버스 타요|로보카 폴리|Poli|Cocomelon|코코멜론|Chuchu|츄츄TV|Super Simple Songs/i, 'kids'],
+  [/키즈|kids|어린이|child|유아|toddler|Disney Junior|디즈니주니어|Nickelodeon|니켈로디언|Cartoon Network|카툰네트워크|투니버스|Tooniverse|애니플러스|Aniplus|애니메이션|anime|애니|만화|cartoon|미니특공대|시크릿쥬쥬|라바|Larva|꿈빛 파티시엘|짱구|크레용신짱|Crayon Shinchan|도라에몽|Doraemon|원피스|One Piece|나루토|Naruto|진격의거인|귀멸의칼날|드래곤볼/i, 'kids'],
+  [/캐리언니|캐리TV|토이푸딩|ToyPudding|토이몬스터|Toymonster|말이야와친구들|허팝 키즈|흔한남매|씬님 키즈|장난감|toy|unboxing toy|인형놀이|뽀로로.*에피소드|키즈 카페|키즈카페|어린이집|유치원|부모|육아|baby|신생아|영유아/i, 'kids'],
+
+  // ════════════════════════════════════════════════════════════
+  // 😴 ASMR / HEALING
+  // ════════════════════════════════════════════════════════════
+  [/ASMR|asmr|이팅사운드|eating sound|tingles|soft sounds|whisper|속삭임|귀청소|롤플레이|role ?play|삼바이끌|사각사각|슬라임|slime|미니어처|miniature|캘리그라피|calligraphy|수면|sleep aid|bgm|힐링 음악|명상|meditation|요가 수련|수련회|힐링 브이로그/i, 'asmr'],
+  [/빗소리|파도소리|화이트노이즈|white noise|자연 소리|nature sound|ambient|앰비언트|lofi|lo-fi|로파이|chill beats|focus music|공부 bgm|집중력 음악|relaxing sounds|spa music|카페 음악/i, 'asmr'],
 ];
 
 // Title/channel keyword buckets (individual scoring).
@@ -300,6 +315,28 @@ const KEYWORDS = {
     '자동차','car','벤츠','benz','bmw','아우디','audi','포르쉐','porsche','현대','기아',
     '테슬라','tesla','전기차','ev','하이브리드','suv','세단','sedan','오토바이','바이크',
     '모터','motorcycle','드론','drone','로봇','robot','가상현실','vr','ar','mr',
+  ],
+  kids: [
+    '키즈','kids','어린이','유아','아기','baby','toddler','infant','신생아','영유아',
+    '애니메이션','animation','애니','anime','만화','cartoon','comic','장난감','toy',
+    '뽀로로','pororo','핑크퐁','pinkfong','아기상어','baby shark','cocomelon','코코멜론',
+    '콩순이','또봇','타요','뿡뿡이','폴리','poli','슈퍼심플','super simple','캐리','토이푸딩',
+    'toypudding','말이야와친구들','흔한남매','짱구','크레용신짱','도라에몽','도라에몽 에피소드',
+    '원피스','나루토','naruto','귀멸의칼날','진격의거인','드래곤볼','디즈니주니어','니켈로디언',
+    'cartoon network','카툰네트워크','투니버스','애니플러스','pixar','픽사','지브리','ghibli',
+    '토이','인형','플레이도','play-doh','슬라임','slime','어린이집','유치원','놀이','구연동화',
+    '동화','전래동화','영어동요','한글동요','자장가','육아','부모','엄마','아빠','아이','돌잡이',
+    '키즈카페','놀이터','놀이공원','키캠','키즈 브이로그',
+  ],
+  asmr: [
+    'asmr','이팅사운드','eating sound','tingle','tingles','whisper','속삭임','귀청소',
+    '롤플레이','roleplay','role play','슬라임','slime','미니어처','miniature','캘리그라피',
+    'calligraphy','수면','sleep','sleep aid','bgm','힐링','healing','명상','meditation',
+    '요가','힐링음악','빗소리','rain sound','파도','wave sound','화이트노이즈','white noise',
+    '자연소리','nature sound','ambient','앰비언트','lofi','lo-fi','로파이','chill','chillout',
+    'chill beats','focus music','집중력','공부 bgm','study music','relaxing','이완','스트레스',
+    '심신안정','명상음악','마인드풀','mindful','숙면','불면','사각사각','졸릴때','tapping',
+    'soft sounds','브러시 소리','키보드 사운드','타이핑 asmr','글씨 쓰는 소리','페이지 넘기는 소리',
   ],
 };
 
@@ -448,6 +485,7 @@ export function buildChannelCategoryMap(shorts) {
     const dictCat = matchChannelDict(channel);
     if (dictCat) {
       result[channel] = dictCat;
+      cacheSet(channel, dictCat);
       continue;
     }
     // 2. Aggregate keyword score across all the channel's titles + channel name.
@@ -460,9 +498,17 @@ export function buildChannelCategoryMap(shorts) {
         bestId = id;
       }
     }
-    result[channel] = bestScore > 0 ? bestId : 'etc';
-    // Seed memoization cache too
-    cacheSet(channel, result[channel]);
+    // Threshold ≥ 2 to avoid locking in a bad guess from a single stray keyword.
+    if (bestScore >= 2) {
+      result[channel] = bestId;
+      cacheSet(channel, bestId);
+    } else {
+      // Leave the channel "unresolved" — let per-title fallback in
+      // aggregateCategories do the work. Mark cache so classifyLocally
+      // skips dict step on subsequent calls.
+      result[channel] = 'etc';
+      cacheSet(channel, '__TITLE__');
+    }
   }
   return result;
 }
@@ -475,7 +521,12 @@ export function aggregateCategories(shorts, channelCategoryMap = null) {
   const counts = Object.fromEntries(CATEGORIES.map((c) => [c.id, 0]));
   for (const s of shorts) {
     let cat = map[s.channel];
-    if (!cat) cat = classifyLocally(s.channel, s.title);
+    // Key fix: if channel-level was 'etc' or missing, retry at the title level.
+    // Most "mystery" shorts have identifiable words in the title that
+    // buildChannelCategoryMap missed when averaging across the whole channel.
+    if (!cat || cat === 'etc') {
+      cat = classifyLocally(s.channel, s.title);
+    }
     if (!(cat in counts)) cat = 'etc';
     counts[cat] += 1;
   }

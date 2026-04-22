@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import PersonalityCard from './PersonalityCard';
+import MbtiCard from './MbtiCard';
 import CategoryChart from './CategoryChart';
 import TimeHeatmap from './TimeHeatmap';
 import TrendChart from './TrendChart';
@@ -181,6 +182,7 @@ export default function Dashboard({ data, onReset }) {
             topCategories={topCategories}
             indices={indices}
           />
+          <MbtiCard indices={indices} />
           <FeedbackPanel personalityId={personality.id} />
         </div>
       )}
