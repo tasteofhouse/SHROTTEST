@@ -7,6 +7,8 @@ import {
   summaryStats,
   buildInsights,
   computeIndices,
+  splitBySource,
+  analyzeMusicViews,
 } from '../utils/analyzePattern';
 import { detectPersonality } from '../utils/detectPersonality';
 import { saveAnalysis } from '../utils/historyStorage';
@@ -32,33 +34,44 @@ export default function AnalysisProgress({ views, onDone }) {
     ran.current = true;
 
     async function run() {
-      // Step 0 — file already uploaded
+      // Step 0 — file already uploaded. Split views by source first so music
+      // (YouTube Music) is tracked separately and doesn't pollute category/
+      // personality analysis, which should reflect YouTube side only.
       setCurrentStep(0);
       setProgress(15);
+      const { music: musicViews, shorts: shortsViews, video: videoViews, yt: ytViews } = splitBySource(views);
+      const sourceCounts = {
+        total: views.length,
+        video: videoViews.length,
+        shorts: shortsViews.length,
+        music: musicViews.length,
+        youtubeTotal: ytViews.length,
+      };
       await delay(350);
 
-      // Step 1 — categorize + top channels
+      // Step 1 — categorize + top channels (YouTube side only)
       setCurrentStep(1);
       setProgress(35);
       await delay(50); // yield to paint
-      const topChannels = analyzeTopChannels(views, 25);
-      const categoryDist = aggregateCategories(views);
+      const topChannels = analyzeTopChannels(ytViews, 25);
+      const categoryDist = aggregateCategories(ytViews);
       await delay(400);
 
-      // Step 2 — stats + heatmap + trend
+      // Step 2 — stats + heatmap + trend (YouTube side) + music listen stats
       setCurrentStep(2);
       setProgress(62);
       await delay(50);
-      const stats = summaryStats(views);
-      const heatmap = analyzeHourDayHeatmap(views);
-      const trend = analyzeDailyTrend(views, 30);
+      const stats = summaryStats(ytViews);
+      const heatmap = analyzeHourDayHeatmap(ytViews);
+      const trend = analyzeDailyTrend(ytViews, 30);
+      const musicInsight = analyzeMusicViews(musicViews);
       await delay(450);
 
       // Step 3 — personality + insights
       setCurrentStep(3);
       setProgress(85);
       await delay(50);
-      const indices = computeIndices(stats, categoryDist, topChannels, views);
+      const indices = computeIndices(stats, categoryDist, topChannels, ytViews);
       const personality = detectPersonality(categoryDist, stats, {
         top3Share: indices.top3Share,
         indices,
@@ -82,6 +95,8 @@ export default function AnalysisProgress({ views, onDone }) {
         personality,
         insights,
         topCategories,
+        sourceCounts,
+        musicInsight,
       };
       saveAnalysis(result);
       onDone(result);

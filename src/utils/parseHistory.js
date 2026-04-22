@@ -1,18 +1,39 @@
 // Parses Google Takeout YouTube watch-history.json and normalizes entries.
 //
+// Sources split (important):
+//   - 'music'  → YouTube Music listens (music.youtube.com or products includes 'YouTube Music')
+//   - 'shorts' → YouTube Shorts (URL contains /shorts/ or #shorts hashtag in title)
+//   - 'video'  → regular YouTube video watches
+//
+// Category/personality analysis runs on YouTube side only (video + shorts).
+// Music is tracked as its own dimension — users typically listen to music
+// on YouTube Music, so mixing it into category stats would distort results.
+//
 // Note on Shorts detection:
-// Google Takeout stores ALL YouTube views as /watch?v=... URLs — Shorts are NOT
-// separately marked. The only reliable in-data signal is a #shorts hashtag in
-// the title, but that only covers ~8% of real Shorts. So we analyze ALL YouTube
-// views by default and tag hashtag-confirmed Shorts as a bonus stat.
+// Google Takeout stores most YouTube views as /watch?v=... — only some have
+// /shorts/ preserved. We additionally match an explicit #shorts hashtag in
+// the title, but real Shorts coverage is partial. So treat `shorts` source
+// as a lower-bound; `video` count may include some undetected shorts.
 
 const SHORTS_HASHTAG_RE = /#shorts?\b|#쇼츠|#숏츠|#shortslive/i;
 
+export function isYouTubeMusic(entry) {
+  if (!entry) return false;
+  if (entry.header === 'YouTube Music') return true;
+  if (Array.isArray(entry.products) && entry.products.includes('YouTube Music')) return true;
+  if (entry.titleUrl && /music\.youtube\.com/i.test(entry.titleUrl)) return true;
+  return false;
+}
+
 export function isYouTubeView(entry) {
   if (!entry || !entry.titleUrl) return false;
-  if (entry.header && entry.header !== 'YouTube') return false;
-  // Any youtube.com URL (watch, shorts, live) counts
-  return /youtube\.com\/(watch|shorts|live)/i.test(entry.titleUrl);
+  const h = entry.header;
+  const prods = Array.isArray(entry.products) ? entry.products : [];
+  const looksLikeYouTube =
+    h === 'YouTube' || h === 'YouTube Music' ||
+    prods.includes('YouTube') || prods.includes('YouTube Music');
+  if (!looksLikeYouTube) return false;
+  return /youtube\.com\/(watch|shorts|live)|music\.youtube\.com/i.test(entry.titleUrl);
 }
 
 export function isLikelyShort(entry) {
@@ -31,6 +52,8 @@ function cleanTitle(rawTitle) {
   t = t.replace(/^Watched\s+/i, '');
   // Other Korean variant
   t = t.replace(/^시청함\s+/, '');
+  // YouTube Music: "Listened to 제목"
+  t = t.replace(/^Listened to\s+/i, '');
   return t.trim();
 }
 
@@ -48,6 +71,14 @@ export function normalizeEntry(entry) {
   if (shortsMatch) videoId = shortsMatch[1];
   else if (watchMatch) videoId = watchMatch[1];
 
+  // Decide source. Music takes precedence since those entries often use
+  // regular /watch?v=... URLs but have products: ['YouTube Music'].
+  const short = isLikelyShort(entry);
+  let source;
+  if (isYouTubeMusic(entry)) source = 'music';
+  else if (short) source = 'shorts';
+  else source = 'video';
+
   return {
     title,
     channel,
@@ -55,7 +86,8 @@ export function normalizeEntry(entry) {
     time,
     videoId,
     url,
-    isShort: isLikelyShort(entry),
+    source,
+    isShort: short,
   };
 }
 

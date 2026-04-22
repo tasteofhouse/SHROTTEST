@@ -2,6 +2,56 @@
 
 const WEEKDAYS = ['일', '월', '화', '수', '목', '금', '토'];
 
+// Split a view list by source tag ('music' | 'shorts' | 'video').
+// Returns { music, shorts, video, yt } where `yt` = shorts + video
+// (YouTube side). All main analysis should run on `yt`.
+export function splitBySource(views) {
+  const music = [];
+  const shorts = [];
+  const video = [];
+  for (const v of views) {
+    if (v.source === 'music') music.push(v);
+    else if (v.source === 'shorts') shorts.push(v);
+    else video.push(v);
+  }
+  const yt = video.concat(shorts).sort((a, b) => b.time - a.time);
+  return { music, shorts, video, yt };
+}
+
+// Music-side stats — YouTube Music listens. Doesn't try to categorize by
+// genre/topic; just surfaces top artists, listen volume, peak hour.
+export function analyzeMusicViews(musicViews) {
+  const total = musicViews.length;
+  if (total === 0) {
+    return { total: 0, uniqueArtists: 0, topArtists: [], peakHour: 0, nightRatio: 0 };
+  }
+  const channelMap = new Map();
+  const hourCount = new Array(24).fill(0);
+  let nightCount = 0;
+  for (const v of musicViews) {
+    channelMap.set(v.channel, (channelMap.get(v.channel) || 0) + 1);
+    const h = v.time.getHours();
+    hourCount[h] += 1;
+    if (h >= 0 && h <= 5) nightCount += 1;
+  }
+  const topArtists = Array.from(channelMap.entries())
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 10)
+    .map(([channel, count]) => ({ channel, count }));
+  let peakHour = 0;
+  let peakCount = 0;
+  hourCount.forEach((c, h) => {
+    if (c > peakCount) { peakCount = c; peakHour = h; }
+  });
+  return {
+    total,
+    uniqueArtists: channelMap.size,
+    topArtists,
+    peakHour,
+    nightRatio: nightCount / total,
+  };
+}
+
 export function analyzeHourDistribution(shorts) {
   const counts = new Array(24).fill(0);
   for (const s of shorts) counts[s.time.getHours()] += 1;
