@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import PersonalityCard from './PersonalityCard';
 import MbtiCard from './MbtiCard';
 import CategoryChart from './CategoryChart';
@@ -10,10 +10,7 @@ import ShareCard from './ShareCard';
 import FeedbackPanel from './FeedbackPanel';
 import AlgorithmGuide from './AlgorithmGuide';
 import ChangeTracker from './ChangeTracker';
-import { RotateCcw, User, BarChart2, Compass, History, Share2, Palette, Shuffle } from 'lucide-react';
-import { DASHBOARD_THEMES, getThemeById, themeStyle } from '../utils/dashboardThemes';
-
-const THEME_STORAGE_KEY = 'shortsInsight.dashboardTheme';
+import { RotateCcw, User, BarChart2, Compass, History, Share2 } from 'lucide-react';
 
 const TABS = [
   { id: 'result', label: '내 유형', icon: User },
@@ -25,22 +22,6 @@ const TABS = [
 
 export default function Dashboard({ data, onReset }) {
   const [activeTab, setActiveTab] = useState('result');
-  const [themeId, setThemeId] = useState('midnight');
-  const [showThemePicker, setShowThemePicker] = useState(false);
-
-  // Persist theme across sessions
-  useEffect(() => {
-    try {
-      const saved = localStorage.getItem(THEME_STORAGE_KEY);
-      if (saved) setThemeId(saved);
-    } catch {/* ignore */}
-  }, []);
-  useEffect(() => {
-    try { localStorage.setItem(THEME_STORAGE_KEY, themeId); } catch {/* ignore */}
-  }, [themeId]);
-
-  const theme = getThemeById(themeId);
-  const themeDark = theme.dark !== false;
 
   const {
     categoryDist,
@@ -54,47 +35,18 @@ export default function Dashboard({ data, onReset }) {
     topCategories,
   } = data;
 
-  const pickRandomTheme = () => {
-    const others = DASHBOARD_THEMES.filter((t) => t.id !== themeId);
-    const next = others[Math.floor(Math.random() * others.length)];
-    setThemeId(next.id);
-  };
-
   return (
-    <div
-      className="max-w-5xl mx-auto px-4 md:px-6 py-6 space-y-5 rounded-3xl"
-      style={themeStyle(theme)}
-    >
+    <div className="max-w-5xl mx-auto px-4 md:px-6 py-6 space-y-5">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <div className="text-xs opacity-60">분석 완료 · {theme.emoji} {theme.label}</div>
-          <h1 className="text-2xl md:text-3xl font-bold">내 YouTube 인사이트</h1>
+          <div className="text-xs text-zinc-500">분석 완료</div>
+          <h1 className="text-2xl md:text-3xl font-bold text-zinc-100">내 YouTube 인사이트</h1>
         </div>
         <div className="flex items-center gap-2">
           <button
-            onClick={pickRandomTheme}
-            title="테마 랜덤"
-            className={`inline-flex items-center gap-1.5 px-2.5 py-2 rounded-lg text-xs transition ${
-              themeDark ? 'bg-black/30 border border-white/10 text-white hover:bg-black/50' : 'bg-white/60 border border-black/10 hover:bg-white/90'
-            }`}
-          >
-            <Shuffle className="w-3.5 h-3.5" />
-          </button>
-          <button
-            onClick={() => setShowThemePicker((v) => !v)}
-            className={`inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm transition ${
-              themeDark ? 'bg-black/30 border border-white/10 text-white hover:bg-black/50' : 'bg-white/60 border border-black/10 hover:bg-white/90'
-            }`}
-          >
-            <Palette className="w-4 h-4" />
-            테마
-          </button>
-          <button
             onClick={onReset}
-            className={`inline-flex items-center gap-2 px-3 py-2 rounded-lg text-sm transition ${
-              themeDark ? 'bg-black/30 border border-white/10 text-white hover:bg-black/50' : 'bg-white/60 border border-black/10 hover:bg-white/90'
-            }`}
+            className="inline-flex items-center gap-2 px-3 py-2 rounded-lg text-sm bg-bg-elevated border border-zinc-800 text-zinc-200 hover:bg-zinc-800 transition"
           >
             <RotateCcw className="w-4 h-4" />
             새 파일 분석
@@ -102,55 +54,8 @@ export default function Dashboard({ data, onReset }) {
         </div>
       </div>
 
-      {/* Theme picker */}
-      {showThemePicker && (
-        <div
-          className="rounded-2xl p-3 space-y-2"
-          style={{ background: themeDark ? 'rgba(0,0,0,0.35)' : 'rgba(255,255,255,0.7)', border: themeDark ? '1px solid rgba(255,255,255,0.08)' : '1px solid rgba(0,0,0,0.08)' }}
-        >
-          <div className="flex items-center justify-between">
-            <div className="text-xs opacity-70">테마 선택 · 총 {DASHBOARD_THEMES.length}종</div>
-            <button
-              onClick={() => setShowThemePicker(false)}
-              className="text-xs opacity-70 hover:opacity-100"
-            >
-              닫기
-            </button>
-          </div>
-          <div className="grid grid-cols-5 md:grid-cols-10 gap-1.5 max-h-[220px] overflow-y-auto">
-            {DASHBOARD_THEMES.map((t) => {
-              const active = t.id === themeId;
-              return (
-                <button
-                  key={t.id}
-                  onClick={() => setThemeId(t.id)}
-                  className={`aspect-square rounded-lg flex flex-col items-center justify-center text-[9px] font-semibold transition relative ${
-                    active ? 'ring-2 ring-offset-1 ring-offset-transparent' : 'hover:scale-105'
-                  }`}
-                  style={{
-                    background: t.bg.includes('gradient') ? t.bg : t.card,
-                    color: t.text,
-                    boxShadow: active ? `0 0 0 2px ${t.accent}` : 'inset 0 0 0 1px rgba(255,255,255,0.08)',
-                  }}
-                  title={t.label}
-                >
-                  <span className="text-sm leading-none">{t.emoji}</span>
-                  <span className="mt-0.5 leading-tight text-[8px] opacity-80">{t.label}</span>
-                </button>
-              );
-            })}
-          </div>
-        </div>
-      )}
-
       {/* Tab nav */}
-      <div
-        className="flex gap-1 rounded-2xl p-1.5 overflow-x-auto"
-        style={{
-          background: themeDark ? 'rgba(0,0,0,0.35)' : 'rgba(255,255,255,0.6)',
-          border: themeDark ? '1px solid rgba(255,255,255,0.08)' : '1px solid rgba(0,0,0,0.08)',
-        }}
-      >
+      <div className="flex gap-1 rounded-2xl p-1.5 overflow-x-auto bg-bg-elevated border border-zinc-800">
         {TABS.map(({ id, label, icon: Icon }) => {
           const active = activeTab === id;
           return (
@@ -158,13 +63,10 @@ export default function Dashboard({ data, onReset }) {
               key={id}
               onClick={() => setActiveTab(id)}
               className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-medium whitespace-nowrap transition flex-shrink-0 ${
-                active ? '' : 'opacity-70 hover:opacity-100'
-              }`}
-              style={
                 active
-                  ? { background: theme.accent, color: themeDark ? '#0a0a0a' : '#ffffff' }
-                  : {}
-              }
+                  ? 'bg-grad-yt text-white shadow-glow'
+                  : 'text-zinc-400 hover:text-zinc-200 hover:bg-white/5'
+              }`}
             >
               <Icon className="w-4 h-4" />
               {label}
@@ -222,14 +124,10 @@ export default function Dashboard({ data, onReset }) {
             ].map(({ label, value }) => (
               <div
                 key={label}
-                className="rounded-2xl p-4 text-center"
-                style={{
-                  background: themeDark ? 'rgba(0,0,0,0.3)' : 'rgba(255,255,255,0.6)',
-                  border: themeDark ? '1px solid rgba(255,255,255,0.08)' : '1px solid rgba(0,0,0,0.08)',
-                }}
+                className="rounded-2xl p-4 text-center bg-bg-card border border-zinc-800"
               >
-                <div className="text-xl font-bold">{value}</div>
-                <div className="text-xs opacity-60 mt-0.5">{label}</div>
+                <div className="text-xl font-bold text-zinc-100">{value}</div>
+                <div className="text-xs text-zinc-500 mt-0.5">{label}</div>
               </div>
             ))}
           </div>
@@ -277,8 +175,8 @@ export default function Dashboard({ data, onReset }) {
         </div>
       )}
 
-      <footer className="pt-2 pb-10 text-center text-xs opacity-50">
-        모든 분석은 내 브라우저에서만 처리됩니다 · Shorts Insight · 테마 {theme.emoji} {theme.label}
+      <footer className="pt-2 pb-10 text-center text-xs text-zinc-600">
+        모든 분석은 내 브라우저에서만 처리됩니다 · Shorts Insight
       </footer>
     </div>
   );
@@ -286,17 +184,10 @@ export default function Dashboard({ data, onReset }) {
 
 function Card({ title, subtitle, children }) {
   return (
-    <section
-      className="rounded-2xl p-5 md:p-6"
-      style={{
-        background: 'rgba(0,0,0,0.3)',
-        border: '1px solid rgba(255,255,255,0.08)',
-        backdropFilter: 'blur(2px)',
-      }}
-    >
+    <section className="rounded-2xl p-5 md:p-6 bg-bg-card border border-zinc-800">
       <div className="mb-4">
-        <h3 className="text-base font-semibold">{title}</h3>
-        {subtitle && <p className="text-xs opacity-60 mt-0.5">{subtitle}</p>}
+        <h3 className="text-base font-semibold text-zinc-100">{title}</h3>
+        {subtitle && <p className="text-xs text-zinc-500 mt-0.5">{subtitle}</p>}
       </div>
       {children}
     </section>

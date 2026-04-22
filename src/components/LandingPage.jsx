@@ -297,10 +297,19 @@ export default function LandingPage({ onStart }) {
           </button>
         </div>
 
-        <p className="mt-5 text-xs text-zinc-500 flex items-center gap-1.5">
-          <Shield className="w-3.5 h-3.5 text-emerald-400" />
-          파일은 서버로 전송되지 않아요. 100% 내 브라우저에서만 분석해요.
-        </p>
+        {/* Privacy — larger, stronger emphasis */}
+        <div className="mt-6 max-w-md px-4 py-3 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 flex items-start gap-3 text-left animate-fade-up">
+          <Shield className="w-5 h-5 text-emerald-400 flex-shrink-0 mt-0.5" />
+          <div>
+            <p className="text-sm font-semibold text-emerald-300">
+              파일은 절대 서버로 전송되지 않아요
+            </p>
+            <p className="text-xs text-emerald-400/80 leading-relaxed mt-0.5">
+              100% 내 브라우저에서만 분석하고, 끝나면 메모리에서 즉시 지워져요.
+              네트워크 탭을 열어도 업로드 요청은 나가지 않아요.
+            </p>
+          </div>
+        </div>
       </main>
 
       {/* Features */}
@@ -323,8 +332,8 @@ export default function LandingPage({ onStart }) {
             },
             {
               icon: BarChart2,
-              title: '32가지 MBTI 유형',
-              desc: '도파민·야행성·찐팬 등 5축으로 나만의 시청 성향을 진단해요.',
+              title: '풍부한 인사이트',
+              desc: '취향 유형, 시간대, Top 채널, 카테고리, 변화 추이까지 한눈에.',
               color: 'text-blue-400',
               bg: 'bg-blue-400/10',
             },

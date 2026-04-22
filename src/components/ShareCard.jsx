@@ -51,12 +51,27 @@ const VARIANTS = [
   { id: 'horoscope',   label: '별자리',    icon: MoonIcon },
 ];
 
+// Deterministic hash so the same personality always starts on the same card
+// style (until the user shuffles). Uses djb2 for a tiny, dependency-free hash.
+function hashString(str) {
+  let hash = 5381;
+  for (let i = 0; i < str.length; i++) hash = ((hash << 5) + hash) + str.charCodeAt(i);
+  return Math.abs(hash);
+}
+
+function defaultVariantFor(personalityId) {
+  const ids = VARIANTS.map((v) => v.id);
+  return ids[hashString(personalityId || 'classic') % ids.length];
+}
+
 export default function ShareCard({ personality, topCategories, stats, indices }) {
   const cardRef = useRef(null);
   const [copied, setCopied] = useState(false);
   const [linkCopied, setLinkCopied] = useState(false);
   const [downloading, setDownloading] = useState(false);
-  const [variant, setVariant] = useState('classic');
+  // Variant is auto-assigned per personality. Users can shuffle for variety
+  // but they no longer need to pick from a 30-chip grid.
+  const [variant, setVariant] = useState(() => defaultVariantFor(personality?.id));
 
   const top3 = (topCategories || []).filter((c) => c.id !== 'etc').slice(0, 3);
 
@@ -65,6 +80,9 @@ export default function ShareCard({ personality, topCategories, stats, indices }
     const next = others[Math.floor(Math.random() * others.length)];
     setVariant(next.id);
   };
+
+  const currentVariantLabel =
+    VARIANTS.find((v) => v.id === variant)?.label || '클래식';
 
   const shareText =
     `내 YouTube 취향은 ${personality.emoji} ${personality.name}!\n` +
@@ -152,35 +170,19 @@ export default function ShareCard({ personality, topCategories, stats, indices }
 
   return (
     <div className="space-y-5">
-      {/* Variant picker */}
-      <div className="flex flex-wrap gap-2 justify-center">
-        {VARIANTS.map(({ id, label, icon: Icon }) => {
-          const active = variant === id;
-          return (
-            <button
-              key={id}
-              onClick={() => setVariant(id)}
-              className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold border transition ${
-                active
-                  ? 'bg-grad-yt text-white border-transparent shadow-glow'
-                  : 'bg-bg-elevated text-zinc-300 border-zinc-700 hover:bg-zinc-800'
-              }`}
-            >
-              <Icon className="w-3.5 h-3.5" />
-              {label}
-            </button>
-          );
-        })}
-      </div>
-
-      {/* Random picker */}
-      <div className="flex justify-center">
+      {/* Simplified picker — variant is auto-assigned, users can shuffle */}
+      <div className="flex items-center justify-center gap-2 text-xs text-zinc-400">
+        <span>현재 카드 스타일:</span>
+        <span className="px-2.5 py-1 rounded-full bg-bg-elevated border border-zinc-700 text-zinc-200 font-semibold">
+          {currentVariantLabel}
+        </span>
         <button
           onClick={pickRandomVariant}
-          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-bg-elevated border border-zinc-700 text-zinc-200 text-xs hover:bg-zinc-800 transition"
+          className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-bg-elevated border border-zinc-700 text-zinc-200 hover:bg-zinc-800 transition"
+          title="다른 스타일로 바꾸기"
         >
-          <Shuffle className="w-3.5 h-3.5" />
-          랜덤 (총 {VARIANTS.length}종)
+          <Shuffle className="w-3 h-3" />
+          다른 스타일
         </button>
       </div>
 

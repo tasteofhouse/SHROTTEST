@@ -61,6 +61,7 @@ export default function AnalysisProgress({ views, onDone }) {
       const indices = computeIndices(stats, categoryDist, topChannels, views);
       const personality = detectPersonality(categoryDist, stats, {
         top3Share: indices.top3Share,
+        indices,
       });
       const insights = buildInsights(stats, categoryDist, topChannels, indices);
       const topCategories = [...categoryDist]

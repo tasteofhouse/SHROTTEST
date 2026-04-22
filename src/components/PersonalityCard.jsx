@@ -104,6 +104,57 @@ export default function PersonalityCard({ personality, stats, topCategories, ind
           </div>
         )}
       </div>
+
+      {/* Runner-ups — "나와 가까운 유형 Top 3" */}
+      {personality.runnerUps && personality.runnerUps.length > 0 && (
+        <div className="relative z-10 mt-6">
+          <div className="flex items-center justify-between mb-2 px-1">
+            <span className="text-xs font-semibold text-white/85 tracking-wide">
+              나와 가까운 다른 유형
+            </span>
+            <span className="text-[10px] text-white/60">
+              전체 {RUNNER_TOTAL}유형 중
+            </span>
+          </div>
+          <div className="grid grid-cols-3 gap-2">
+            {personality.runnerUps.slice(0, 3).map((t, i) => (
+              <RunnerCard key={t.id} rank={i + 2} type={t} />
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+const RUNNER_TOTAL = 22;
+
+function RunnerCard({ rank, type }) {
+  return (
+    <div
+      className="relative rounded-2xl p-3 bg-black/30 backdrop-blur border border-white/10 hover:bg-black/40 transition overflow-hidden"
+    >
+      {/* Gradient tint strip on left (nods to enneagram card style) */}
+      <div
+        className={`absolute inset-y-0 left-0 w-1 bg-gradient-to-b ${type.gradient}`}
+      />
+      <div className="pl-2">
+        <div className="flex items-start justify-between">
+          <div className="text-[10px] text-white/60 font-semibold">
+            {rank}순위
+          </div>
+          <div className="text-[10px] text-white/50 tabular-nums">
+            {type.score}pt
+          </div>
+        </div>
+        <div className="text-3xl leading-none mt-1 drop-shadow">{type.emoji}</div>
+        <div className="text-[11px] font-bold text-white mt-1 leading-tight">
+          {type.name}
+        </div>
+        <div className="text-[9px] text-white/70 mt-0.5 leading-snug line-clamp-2">
+          {type.tagline}
+        </div>
+      </div>
     </div>
   );
 }
