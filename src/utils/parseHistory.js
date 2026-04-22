@@ -36,6 +36,33 @@ export function isYouTubeView(entry) {
   return /youtube\.com\/(watch|shorts|live)|music\.youtube\.com/i.test(entry.titleUrl);
 }
 
+// In-feed Google Ads get written to watch history with a 'From Google Ads'
+// marker in details. Exclude — these aren't real watches.
+export function isAdEntry(entry) {
+  if (!Array.isArray(entry?.details)) return false;
+  return entry.details.some(
+    (d) => d && typeof d.name === 'string' && /from google ads/i.test(d.name)
+  );
+}
+
+// Deleted / private / region-blocked / taken-down videos: Takeout keeps the
+// row but drops the `subtitles` array (no channel) and stores the raw URL as
+// the `title`. There is nothing useful to classify — they just inflate the
+// "알 수 없는 채널" bucket. Drop at parse time.
+export function isUnavailableEntry(entry) {
+  const hasChannel =
+    Array.isArray(entry?.subtitles) &&
+    entry.subtitles.length > 0 &&
+    !!entry.subtitles[0]?.name;
+  if (hasChannel) return false;
+  const rawTitle = (entry?.title || '').trim();
+  if (!rawTitle) return true;
+  if (/^https?:\/\//i.test(rawTitle)) return true;
+  // Korean Takeout deleted-video placeholder: "동영상을 시청했습니다"
+  if (/^동영상\s*을\(를\)?\s*시청했습니다\.?$/.test(rawTitle)) return true;
+  return false;
+}
+
 export function isLikelyShort(entry) {
   if (!entry) return false;
   if ((entry.titleUrl || '').includes('/shorts/')) return true;
@@ -60,8 +87,10 @@ function cleanTitle(rawTitle) {
 export function normalizeEntry(entry) {
   const title = cleanTitle(entry.title || '');
   const sub = entry.subtitles && entry.subtitles[0];
-  const channel = sub ? sub.name : '알 수 없는 채널';
-  const channelUrl = sub ? sub.url : null;
+  // Some Takeout rows have `subtitles: [{}]` — a present array with an empty
+  // object. Guard against undefined `name` so we don't bucket those as literal "undefined".
+  const channel = sub && sub.name ? sub.name : '알 수 없는 채널';
+  const channelUrl = sub && sub.url ? sub.url : null;
   const time = entry.time ? new Date(entry.time) : null;
 
   const url = entry.titleUrl || '';
@@ -97,15 +126,23 @@ export function parseWatchHistory(rawJson) {
   }
 
   const views = [];
+  let skipped = 0;
   for (const entry of rawJson) {
-    if (isYouTubeView(entry)) {
-      const n = normalizeEntry(entry);
-      if (n.time && !isNaN(n.time.getTime())) {
-        views.push(n);
-      }
+    if (!isYouTubeView(entry)) continue;
+    if (isAdEntry(entry)) { skipped++; continue; }
+    if (isUnavailableEntry(entry)) { skipped++; continue; }
+    const n = normalizeEntry(entry);
+    if (n.time && !isNaN(n.time.getTime())) {
+      views.push(n);
     }
   }
   views.sort((a, b) => b.time - a.time);
+  // Stash skip count on the array — non-enumerable so it doesn't serialize but
+  // accessible to the analyzer if it wants to show "N건 제외됨" context.
+  Object.defineProperty(views, 'skippedUnavailable', {
+    value: skipped,
+    enumerable: false,
+  });
   return views;
 }
 

@@ -29,10 +29,11 @@ export function analyzeMusicViews(musicViews) {
   const hourCount = new Array(24).fill(0);
   let nightCount = 0;
   for (const v of musicViews) {
-    channelMap.set(v.channel, (channelMap.get(v.channel) || 0) + 1);
     const h = v.time.getHours();
     hourCount[h] += 1;
     if (h >= 0 && h <= 5) nightCount += 1;
+    if (!v.channel || v.channel === '알 수 없는 채널') continue;
+    channelMap.set(v.channel, (channelMap.get(v.channel) || 0) + 1);
   }
   const topArtists = Array.from(channelMap.entries())
     .sort((a, b) => b[1] - a[1])
@@ -72,7 +73,12 @@ export function analyzeHourDayHeatmap(shorts) {
 
 export function analyzeTopChannels(shorts, topN = 5) {
   const map = new Map();
-  for (const s of shorts) map.set(s.channel, (map.get(s.channel) || 0) + 1);
+  for (const s of shorts) {
+    // '알 수 없는 채널' is a junk bucket, not a real channel. Keep it out of
+    // the top list even if some slipped past the parser filter.
+    if (!s.channel || s.channel === '알 수 없는 채널') continue;
+    map.set(s.channel, (map.get(s.channel) || 0) + 1);
+  }
   return Array.from(map.entries())
     .sort((a, b) => b[1] - a[1])
     .slice(0, topN)
