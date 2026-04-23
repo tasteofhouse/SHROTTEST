@@ -1,9 +1,14 @@
 import { useCallback, useMemo, useRef, useState } from 'react';
 import {
   Upload, FileJson, Shield, Loader2, AlertCircle, ArrowLeft,
-  Smartphone, ClipboardPaste, FolderOpen, HelpCircle,
+  Smartphone, ClipboardPaste, FolderOpen, HelpCircle, Plane,
 } from 'lucide-react';
-import { readFileAsJSON, parseWatchHistory } from '../utils/parseHistory';
+import {
+  readFileAsText,
+  parseWatchHistory,
+  parseWatchHistoryHTML,
+  parseWatchHistoryAuto,
+} from '../utils/parseHistory';
 
 // --- Lightweight mobile UA detection (heuristic only — no server round-trip) ---
 function detectIsMobile() {
@@ -25,17 +30,25 @@ export default function FileUpload({ onParsed, onBack }) {
 
   const isMobile = useMemo(() => detectIsMobile(), []);
 
+  // Run the parser appropriate to the source. Takes raw input (JSON value,
+  // JSON text, or HTML text) plus an optional filename hint so HTML and JSON
+  // take different fast paths.
   const processRaw = useCallback(
-    async (raw, sourceLabel = 'paste') => {
+    async (raw, sourceLabel = 'paste', filenameHint = '') => {
       setError(null);
       setLoading(true);
       setProgress('시청 기록 파싱 중...');
       try {
         await new Promise((r) => setTimeout(r, 20));
-        const views = parseWatchHistory(raw);
+        let views;
+        if (typeof raw === 'string') {
+          views = parseWatchHistoryAuto(raw, filenameHint);
+        } else {
+          views = parseWatchHistory(raw);
+        }
         if (views.length === 0) {
           setError(
-            'YouTube 시청 기록이 없어요. watch-history.json 또는 시청 기록.json 맞는지 확인해주세요.'
+            'YouTube 시청 기록이 없어요. watch-history (JSON 또는 HTML) 맞는지 확인해주세요.'
           );
           setLoading(false);
           return;
@@ -56,11 +69,12 @@ export default function FileUpload({ onParsed, onBack }) {
   const handleFile = useCallback(
     async (file) => {
       if (!file) return;
-      // Some mobile pickers strip the extension/MIME — only block obvious mismatches
-      const nameOk = /\.(json|txt)$/i.test(file.name);
-      const mimeOk = !file.type || /json|text|octet/i.test(file.type);
+      // Accept JSON and HTML. Google Takeout defaults to HTML, so many users
+      // arrive with watch-history.html without ever switching the format.
+      const nameOk = /\.(json|html?|txt)$/i.test(file.name);
+      const mimeOk = !file.type || /json|text|octet|html/i.test(file.type);
       if (!nameOk && !mimeOk) {
-        setError('JSON 파일만 업로드할 수 있어요. (다른 형식을 고르셨어요)');
+        setError('JSON 또는 HTML 파일만 업로드할 수 있어요.');
         return;
       }
       if (file.size > 500 * 1024 * 1024) {
@@ -71,8 +85,15 @@ export default function FileUpload({ onParsed, onBack }) {
       setLoading(true);
       setProgress('파일 읽는 중...');
       try {
-        const raw = await readFileAsJSON(file);
-        await processRaw(raw, 'file');
+        const isHTML = /\.html?$/i.test(file.name) || /html/i.test(file.type || '');
+        if (isHTML) {
+          const text = await readFileAsText(file);
+          await processRaw(text, 'file', file.name);
+        } else {
+          // Read as text so we can sniff — JSON path still works via auto.
+          const text = await readFileAsText(file);
+          await processRaw(text, 'file', file.name);
+        }
       } catch (err) {
         setError(err.message || '알 수 없는 오류가 발생했어요.');
         setLoading(false);
@@ -84,15 +105,11 @@ export default function FileUpload({ onParsed, onBack }) {
 
   const handlePaste = useCallback(async () => {
     if (!pasteText.trim()) {
-      setError('붙여넣을 JSON 내용이 비어 있어요.');
+      setError('붙여넣을 내용이 비어 있어요.');
       return;
     }
-    try {
-      const parsed = JSON.parse(pasteText);
-      await processRaw(parsed, 'paste');
-    } catch (e) {
-      setError('JSON 파싱에 실패했어요: ' + (e.message || '형식 확인 필요'));
-    }
+    // Auto-detect JSON vs HTML — user might paste either one.
+    await processRaw(pasteText, 'paste');
   }, [pasteText, processRaw]);
 
   const handleClipboard = useCallback(async () => {
@@ -109,13 +126,8 @@ export default function FileUpload({ onParsed, onBack }) {
       }
       setPasteText(text);
       setShowPaste(true);
-      // Auto-process
-      try {
-        const parsed = JSON.parse(text);
-        await processRaw(parsed, 'clipboard');
-      } catch {
-        setError('클립보드 내용이 JSON 형식이 아니에요. 아래 창에서 확인 후 "업로드"를 눌러주세요.');
-      }
+      // Auto-process — handles both JSON and HTML via sniffing.
+      await processRaw(text, 'clipboard');
     } catch (e) {
       setError('클립보드 접근 권한을 허용해주세요: ' + (e.message || ''));
     }
@@ -142,8 +154,25 @@ export default function FileUpload({ onParsed, onBack }) {
         <div>
           <h2 className="text-2xl font-bold text-zinc-100">시청 기록 업로드</h2>
           <p className="text-zinc-400 text-sm mt-1">
-            Google Takeout에서 받은 JSON 파일을 올려주세요.
+            Google Takeout에서 받은 JSON 또는 HTML 파일을 올려주세요.
           </p>
+        </div>
+
+        {/* Airplane-mode / privacy hero badge — addresses the #1 trust
+            concern ("will my data leave my machine?") head-on. */}
+        <div className="rounded-2xl p-4 md:p-5 bg-gradient-to-r from-emerald-500/15 via-cyan-500/10 to-blue-500/10 border border-emerald-500/30 flex items-start gap-3">
+          <div className="w-10 h-10 rounded-xl bg-emerald-500/20 flex items-center justify-center flex-shrink-0">
+            <Plane className="w-5 h-5 text-emerald-400" />
+          </div>
+          <div className="flex-1">
+            <p className="text-sm font-bold text-emerald-300">
+              서버 전송 절대 없음 · 의심스러우면 비행기 모드 켜고 테스트하세요
+            </p>
+            <p className="text-xs text-emerald-400/80 leading-relaxed mt-1">
+              Wi-Fi / 셀룰러를 꺼도 분석이 정상 동작합니다. 네트워크 탭을 열어도
+              업로드 요청은 나가지 않아요. 파일은 메모리에서 즉시 증발.
+            </p>
+          </div>
         </div>
 
         {/* Upload area */}
@@ -161,7 +190,7 @@ export default function FileUpload({ onParsed, onBack }) {
           <input
             ref={inputRef}
             type="file"
-            accept=".json,application/json,text/json,text/plain"
+            accept=".json,.html,.htm,application/json,text/json,text/html,text/plain"
             className="hidden"
             onChange={(e) => handleFile(e.target.files?.[0])}
           />
@@ -242,7 +271,7 @@ export default function FileUpload({ onParsed, onBack }) {
             {!loading && (
               <div className="flex items-center gap-2 text-xs text-zinc-500 mt-1">
                 <FileJson className="w-4 h-4" />
-                <span>watch-history.json 또는 시청 기록.json</span>
+                <span>watch-history.html / .json (기본 HTML 그대로도 OK)</span>
               </div>
             )}
           </div>

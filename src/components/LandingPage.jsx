@@ -10,6 +10,8 @@ import {
   ChevronDown,
   ChevronUp,
   HelpCircle,
+  Beaker,
+  Plane,
 } from 'lucide-react';
 
 // Pre-configured URL: deep-links into Takeout with YouTube pre-selected, so
@@ -182,16 +184,20 @@ const GUIDE_STEPS = [
   {
     num: '3',
     emoji: '🗂️',
-    title: '시청 기록(history) · JSON 지정',
+    title: '시청 기록(history)만 체크',
     desc: (
       <>
         YouTube 항목 오른쪽{' '}
         <strong className="text-zinc-200">"포함된 데이터 모두"</strong> 버튼 클릭 →{' '}
         <strong className="text-zinc-200">"기록(history)"</strong>만 남기고 나머지는 체크 해제.
-        그리고 <strong className="text-zinc-200">형식을 JSON</strong>으로 바꿔요.
+        <br />
+        <strong className="text-emerald-300">
+          ✨ 기본 설정인 HTML 파일 그대로 받아도 완벽하게 분석해 드려요!
+        </strong>{' '}
+        JSON으로 바꿔도 OK지만 필수 아님 — 그대로 두면 시간 절약!
       </>
     ),
-    tip: '💡 형식이 HTML로 나오면 분석할 수 없어요. 꼭 JSON으로!',
+    tip: '💡 HTML · JSON 둘 다 완벽 지원 · 형식 변경 생략해도 돼요',
     Illustration: HistoryOnlyIllustration,
   },
   {
@@ -212,19 +218,19 @@ const GUIDE_STEPS = [
   {
     num: '5',
     emoji: '📂',
-    title: '압축 풀고 JSON 찾기',
+    title: '압축 풀고 파일 찾기',
     desc: (
       <>
         zip 파일 압축 해제 →{' '}
         <code className="text-xs bg-zinc-800 px-1.5 py-0.5 rounded text-zinc-300">
           Takeout / YouTube 및 YouTube Music / 기록
         </code>{' '}
-        폴더 안에 파일이 있어요. 이 파일을 이 페이지의{' '}
-        <strong className="text-zinc-200">"분석 시작하기"</strong> 버튼 누른 다음 업로드 창에 끌어놓으면 끝!
+        폴더 안에 파일이 있어요. HTML이든 JSON이든 이 페이지의{' '}
+        <strong className="text-zinc-200">"분석 시작하기"</strong> 버튼 → 업로드 창에 끌어놓으면 끝!
       </>
     ),
-    fileNames: ['watch-history.json', '시청 기록.json'],
-    tip: '💡 파일명이 한글이어도 괜찮아요. 언어 설정에 따라 파일 이름만 달라져요',
+    fileNames: ['watch-history.html', 'watch-history.json', '시청 기록.html', '시청 기록.json'],
+    tip: '💡 HTML / JSON · 한글 파일명 모두 OK. 언어 설정에 따라 이름만 달라져요',
     Illustration: UnzipIllustration,
   },
 ];
@@ -235,8 +241,8 @@ const FAQ = [
     a: '500MB 이하면 OK. 대부분 시청 기록은 5~50MB 사이라 걱정 없어요.',
   },
   {
-    q: 'HTML 파일을 받아버렸어요.',
-    a: 'Takeout 3번 단계에서 형식을 JSON으로 다시 지정하고 내보내기를 한 번 더 만들면 돼요.',
+    q: 'HTML 파일로 받았는데 괜찮나요?',
+    a: '완벽해요! HTML · JSON 둘 다 지원합니다. 그대로 업로드하시면 돼요.',
   },
   {
     q: '"시청 기록 저장" 기능을 꺼놨는데도 분석되나요?',
@@ -248,7 +254,7 @@ const FAQ = [
   },
 ];
 
-export default function LandingPage({ onStart }) {
+export default function LandingPage({ onStart, onTrySample }) {
   // Guide opens by default now — MVP users said the flow wasn't obvious.
   const [guideOpen, setGuideOpen] = useState(true);
   const [faqOpen, setFaqOpen] = useState(false);
@@ -297,16 +303,31 @@ export default function LandingPage({ onStart }) {
           </button>
         </div>
 
-        {/* Privacy — larger, stronger emphasis */}
+        {/* Secondary CTA — sample result for the curious + the non-committal */}
+        {onTrySample && (
+          <button
+            onClick={onTrySample}
+            className="mt-3 inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-white/5 border border-zinc-700 text-zinc-200 text-sm hover:bg-white/10 transition animate-fade-up"
+          >
+            <Beaker className="w-4 h-4 text-yt-orange" />
+            샘플 결과 먼저 보기
+            <span className="text-[10px] text-zinc-500 ml-1">· 파일 없이 미리보기</span>
+          </button>
+        )}
+
+        {/* Privacy — larger, stronger emphasis with 비행기 모드 challenge */}
         <div className="mt-6 max-w-md px-4 py-3 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 flex items-start gap-3 text-left animate-fade-up">
-          <Shield className="w-5 h-5 text-emerald-400 flex-shrink-0 mt-0.5" />
+          <div className="flex flex-col items-center gap-1 flex-shrink-0 mt-0.5">
+            <Shield className="w-5 h-5 text-emerald-400" />
+            <Plane className="w-4 h-4 text-emerald-400/80" />
+          </div>
           <div>
             <p className="text-sm font-semibold text-emerald-300">
-              파일은 절대 서버로 전송되지 않아요
+              서버 전송 ZERO · 의심되면 비행기 모드로 확인하세요
             </p>
             <p className="text-xs text-emerald-400/80 leading-relaxed mt-0.5">
-              100% 내 브라우저에서만 분석하고, 끝나면 메모리에서 즉시 지워져요.
-              네트워크 탭을 열어도 업로드 요청은 나가지 않아요.
+              인터넷을 완전히 끊어도 분석이 동작합니다. 네트워크 탭 열어서 확인 가능.
+              파일은 내 브라우저 밖을 절대 나가지 않고, 끝나면 즉시 메모리에서 증발해요.
             </p>
           </div>
         </div>

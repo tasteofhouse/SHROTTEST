@@ -4,6 +4,7 @@ import FileUpload from './components/FileUpload';
 import AnalysisProgress from './components/AnalysisProgress';
 import Dashboard from './components/Dashboard';
 import { VariantSwitch, VARIANT_IDS } from './components/ShareCard';
+import { buildSampleResult } from './utils/sampleData';
 import { Play, Info, Shuffle, ExternalLink } from 'lucide-react';
 import './App.css';
 
@@ -105,10 +106,11 @@ function SharedResultView({ payload, onStart }) {
 }
 
 export default function App() {
-  // step: 'landing' | 'shared' | 'upload' | 'analyzing' | 'result'
+  // step: 'landing' | 'shared' | 'upload' | 'analyzing' | 'result' | 'sample'
   const [step, setStep] = useState('landing');
   const [views, setViews] = useState(null);
   const [result, setResult] = useState(null);
+  const [sampleResult, setSampleResult] = useState(null);
   const [sharedPayload, setSharedPayload] = useState(null);
 
   // Parse shared link on first load
@@ -139,11 +141,17 @@ export default function App() {
   const handleReset = () => {
     setViews(null);
     setResult(null);
+    setSampleResult(null);
     // Clear hash if present
     if (window.location.hash) {
       history.replaceState(null, '', window.location.pathname);
     }
     setStep('landing');
+  };
+
+  const handleStartSample = () => {
+    setSampleResult(buildSampleResult());
+    setStep('sample');
   };
 
   return (
@@ -173,7 +181,12 @@ export default function App() {
       </header>
 
       {/* Content */}
-      {step === 'landing' && <LandingPage onStart={() => setStep('upload')} />}
+      {step === 'landing' && (
+        <LandingPage
+          onStart={() => setStep('upload')}
+          onTrySample={handleStartSample}
+        />
+      )}
 
       {step === 'shared' && sharedPayload && (
         <SharedResultView
@@ -196,6 +209,10 @@ export default function App() {
 
       {step === 'result' && result && (
         <Dashboard data={result} onReset={handleReset} />
+      )}
+
+      {step === 'sample' && sampleResult && (
+        <Dashboard data={sampleResult} onReset={handleReset} isSample />
       )}
     </div>
   );

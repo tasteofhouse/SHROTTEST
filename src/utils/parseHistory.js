@@ -160,3 +160,169 @@ export async function readFileAsJSON(file) {
     reader.readAsText(file);
   });
 }
+
+export async function readFileAsText(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = (e) => resolve(e.target.result);
+    reader.onerror = () => reject(new Error('파일을 읽을 수 없습니다.'));
+    reader.readAsText(file);
+  });
+}
+
+// ────────────────────────────────────────────────────────────
+// HTML Takeout support
+// ────────────────────────────────────────────────────────────
+// Google Takeout's default export format is HTML, not JSON. Many users never
+// switch the format and end up with "시청 기록.html". We parse those natively
+// using DOMParser so they don't have to redo the Takeout export.
+//
+// Typical cell shape (simplified):
+//   <div class="outer-cell ...">
+//     <div class="header-cell"><p>YouTube</p></div>
+//     <div class="content-cell ...">
+//       Watched <a href="https://www.youtube.com/watch?v=...">Title</a><br>
+//       <a href="https://www.youtube.com/channel/...">Channel</a><br>
+//       2024. 3. 14. 오후 9:12:34 GMT+9
+//     </div>
+//     <div class="content-cell ... text-right">
+//       Products:<br>&emsp;YouTube<br>
+//     </div>
+//   </div>
+
+function buildEntryFromCell(cell) {
+  // Skip header cells — we only want content cells with watch data.
+  const anchors = cell.querySelectorAll('a');
+  if (anchors.length === 0) return null;
+  const firstA = anchors[0];
+  const titleText = firstA.textContent || '';
+  const titleUrl = firstA.getAttribute('href') || '';
+  if (!/youtube\.com|music\.youtube\.com/i.test(titleUrl)) return null;
+
+  // Reconstruct the raw "title" field the way the JSON export would.
+  // The cell text is: "Watched <title><br><channel><br><time>" — we grab
+  // just the first text node + the first anchor's text.
+  const childNodes = Array.from(cell.childNodes);
+  let prefix = '';
+  for (const n of childNodes) {
+    if (n.nodeType === Node.TEXT_NODE) {
+      prefix = (n.textContent || '').trim();
+      break;
+    }
+  }
+  // prefix is often "Watched " / "시청함 " / "" — combine with title text
+  const rawTitle = prefix ? `${prefix}${titleText}` : titleText;
+
+  // Second anchor is the channel (if present)
+  let subtitles;
+  if (anchors[1]) {
+    subtitles = [{ name: anchors[1].textContent || '', url: anchors[1].getAttribute('href') || '' }];
+  }
+
+  // Time is the last line of text in the cell. Takeout emits a long form like:
+  // "2024. 3. 14. 오후 9:12:34 GMT+9" (ko) or "Mar 14, 2024, 9:12:34 PM KST" (en)
+  const cellText = cell.textContent || '';
+  // last non-empty line
+  const lines = cellText
+    .split('\n')
+    .map((s) => s.trim())
+    .filter(Boolean);
+  const timeText = lines[lines.length - 1] || '';
+  const parsedTime = parseTakeoutDate(timeText);
+
+  return {
+    header: 'YouTube',
+    title: rawTitle,
+    titleUrl,
+    subtitles,
+    time: parsedTime ? parsedTime.toISOString() : null,
+    // We can't easily recover `products` from HTML, but leaving it undefined
+    // is fine — isYouTubeView already treats header === 'YouTube' as enough.
+  };
+}
+
+// Takeout HTML uses locale-formatted dates. JS Date can parse most English
+// variants directly, but Korean long-form needs help.
+function parseTakeoutDate(raw) {
+  if (!raw) return null;
+  // Fast path — English "Mar 14, 2024, 9:12:34 PM KST"
+  const direct = new Date(raw);
+  if (!isNaN(direct.getTime())) return direct;
+  // Korean "2024. 3. 14. 오후 9:12:34 GMT+9"
+  const m = raw.match(
+    /(\d{4})\.\s*(\d{1,2})\.\s*(\d{1,2})\.?\s*(오전|오후)?\s*(\d{1,2}):(\d{2}):(\d{2})/
+  );
+  if (m) {
+    const [, y, mo, d, ampm, hh, mm, ss] = m;
+    let hour = parseInt(hh, 10);
+    if (ampm === '오후' && hour < 12) hour += 12;
+    if (ampm === '오전' && hour === 12) hour = 0;
+    // Assume local tz if parsing fails — good enough for histograms.
+    const d2 = new Date(
+      parseInt(y, 10),
+      parseInt(mo, 10) - 1,
+      parseInt(d, 10),
+      hour,
+      parseInt(mm, 10),
+      parseInt(ss, 10)
+    );
+    return isNaN(d2.getTime()) ? null : d2;
+  }
+  return null;
+}
+
+export function parseWatchHistoryHTML(htmlText) {
+  if (typeof htmlText !== 'string' || htmlText.length < 50) {
+    throw new Error('HTML 내용이 비어있거나 올바르지 않습니다.');
+  }
+  const parser = new DOMParser();
+  const doc = parser.parseFromString(htmlText, 'text/html');
+
+  // Takeout HTML cells — prefer the inner `content-cell` that has the
+  // watched video info (there are separate cells for metadata / products
+  // that we don't want).
+  const cells = doc.querySelectorAll('div.content-cell');
+  if (!cells.length) {
+    throw new Error(
+      'Takeout HTML 형식이 아닌 것 같아요. (div.content-cell 없음) watch-history.html 맞는지 확인해주세요.'
+    );
+  }
+
+  const views = [];
+  let skipped = 0;
+  for (const cell of cells) {
+    // The "right" content-cell holds Products metadata, not watches.
+    if (cell.classList.contains('mdl-typography--text-right')) continue;
+    const pseudo = buildEntryFromCell(cell);
+    if (!pseudo) continue;
+    if (!isYouTubeView(pseudo)) continue;
+    if (isAdEntry(pseudo)) { skipped++; continue; }
+    if (isUnavailableEntry(pseudo)) { skipped++; continue; }
+    const n = normalizeEntry(pseudo);
+    if (n.time && !isNaN(n.time.getTime())) views.push(n);
+  }
+  views.sort((a, b) => b.time - a.time);
+  Object.defineProperty(views, 'skippedUnavailable', {
+    value: skipped,
+    enumerable: false,
+  });
+  return views;
+}
+
+// Convenience entry point — sniff based on extension / content heuristics.
+export function parseWatchHistoryAuto(input, hint = '') {
+  // Already-parsed JSON array
+  if (Array.isArray(input)) return parseWatchHistory(input);
+  if (typeof input !== 'string') {
+    throw new Error('지원하지 않는 입력 형식입니다.');
+  }
+  const trimmed = input.trimStart();
+  const looksHTML = /\.html?$/i.test(hint) || trimmed.startsWith('<');
+  if (looksHTML) return parseWatchHistoryHTML(input);
+  // Fallback: try JSON first, then HTML
+  try {
+    return parseWatchHistory(JSON.parse(input));
+  } catch {
+    return parseWatchHistoryHTML(input);
+  }
+}

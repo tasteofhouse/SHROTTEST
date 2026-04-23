@@ -12,6 +12,7 @@ import {
 } from '../utils/analyzePattern';
 import { detectPersonality } from '../utils/detectPersonality';
 import { saveAnalysis } from '../utils/historyStorage';
+import AdBanner from './AdBanner';
 
 const STEPS = [
   { label: '파일 업로드 완료', desc: '시청 기록을 불러왔어요' },
@@ -20,6 +21,22 @@ const STEPS = [
   { label: '결과 생성 중', desc: '취향 유형을 계산하는 중...' },
 ];
 
+// Rotating teaser lines that keep the loading screen from feeling dead.
+// Lean into the "매운맛" voice so the ad screen still entertains.
+const LOADING_FLAVOR = [
+  '당신의 도파민을 끌어모으는 중...',
+  '새벽 3시에 뭘 봤는지 기억하시나요?',
+  '그동안 낭비한 시간, 공개 직전...',
+  '알고리즘의 숨겨진 의도를 분석 중...',
+  '현타 수치를 계산하는 중입니다...',
+  '유형 카드 22장을 매칭하는 중...',
+];
+
+// Enforce a minimum duration on the loading screen — the analysis itself is
+// usually sub-second for 5k views, but the user deserves a beat to absorb
+// the transition (and we monetize the dwell with an interstitial ad).
+const MIN_LOADING_MS = 5000;
+
 function delay(ms) {
   return new Promise((r) => setTimeout(r, ms));
 }
@@ -27,11 +44,21 @@ function delay(ms) {
 export default function AnalysisProgress({ views, onDone }) {
   const [currentStep, setCurrentStep] = useState(0);
   const [progress, setProgress] = useState(8);
+  const [flavorIdx, setFlavorIdx] = useState(0);
   const ran = useRef(false);
+
+  // Rotate the flavor tagline every ~1.2s to keep the screen alive.
+  useEffect(() => {
+    const h = setInterval(() => {
+      setFlavorIdx((i) => (i + 1) % LOADING_FLAVOR.length);
+    }, 1200);
+    return () => clearInterval(h);
+  }, []);
 
   useEffect(() => {
     if (ran.current) return;
     ran.current = true;
+    const startedAt = Date.now();
 
     async function run() {
       // Step 0 — file already uploaded. Split views by source first so music
@@ -83,7 +110,15 @@ export default function AnalysisProgress({ views, onDone }) {
       await delay(400);
 
       setProgress(100);
-      await delay(300);
+
+      // Enforce minimum dwell time — user sees the ad, the flavor rotates,
+      // and the transition feels substantive rather than flickering.
+      const elapsed = Date.now() - startedAt;
+      if (elapsed < MIN_LOADING_MS) {
+        await delay(MIN_LOADING_MS - elapsed);
+      } else {
+        await delay(300);
+      }
 
       const result = {
         categoryDist,
@@ -107,14 +142,24 @@ export default function AnalysisProgress({ views, onDone }) {
 
   return (
     <div className="min-h-[calc(100vh-80px)] flex flex-col items-center justify-center px-6 py-10">
-      <div className="w-full max-w-md space-y-8">
+      <div className="w-full max-w-md space-y-6">
         <div className="text-center animate-fade-up">
           <div className="text-6xl mb-4">🔍</div>
           <h2 className="text-2xl font-bold text-zinc-100">시청 기록 분석 중</h2>
           <p className="text-zinc-400 mt-2 text-sm">
             {views?.length?.toLocaleString()}개 영상을 분석하고 있어요
           </p>
+          {/* Rotating flavor line — text fades between rotations */}
+          <p
+            key={flavorIdx}
+            className="mt-3 text-sm font-semibold text-yt-orange animate-fade-up"
+          >
+            {LOADING_FLAVOR[flavorIdx]}
+          </p>
         </div>
+
+        {/* Interstitial square ad — the main monetization surface of the loading screen */}
+        <AdBanner slot="analysis-interstitial" variant="square" />
 
         {/* Progress bar */}
         <div className="space-y-2">

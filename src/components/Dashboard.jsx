@@ -10,7 +10,9 @@ import ShareCard from './ShareCard';
 import FeedbackPanel from './FeedbackPanel';
 import AlgorithmGuide from './AlgorithmGuide';
 import ChangeTracker from './ChangeTracker';
-import { RotateCcw, User, BarChart2, Compass, History, Share2, Film, Zap, Music2 } from 'lucide-react';
+import DopamineBlock from './DopamineBlock';
+import AdBanner from './AdBanner';
+import { RotateCcw, User, BarChart2, Compass, History, Share2, Film, Zap, Music2, Beaker } from 'lucide-react';
 
 const TABS = [
   { id: 'result', label: '내 유형', icon: User },
@@ -20,7 +22,7 @@ const TABS = [
   { id: 'share', label: '공유하기', icon: Share2 },
 ];
 
-export default function Dashboard({ data, onReset }) {
+export default function Dashboard({ data, onReset, isSample = false }) {
   const [activeTab, setActiveTab] = useState('result');
 
   const {
@@ -39,10 +41,36 @@ export default function Dashboard({ data, onReset }) {
 
   return (
     <div className="max-w-5xl mx-auto px-4 md:px-6 py-6 space-y-5">
+      {/* Top ad banner — horizontal strip */}
+      <AdBanner slot="dashboard-top" variant="leaderboard" />
+
+      {/* Sample-data warning banner — only shown when rendering the demo */}
+      {isSample && (
+        <div className="rounded-2xl p-4 bg-gradient-to-r from-yt-orange/20 via-yt-red/15 to-yt-pink/10 border border-yt-orange/40 flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-yt-orange/30 flex items-center justify-center flex-shrink-0">
+            <Beaker className="w-5 h-5 text-yt-orange" />
+          </div>
+          <div className="flex-1">
+            <div className="text-sm font-bold text-yt-orange">[샘플 데이터] 가상의 '도파민 중독자' 결과</div>
+            <div className="text-xs text-zinc-400 mt-0.5">
+              실제 결과를 보려면 "새 파일 분석" 버튼을 눌러 나의 시청 기록을 올려보세요.
+            </div>
+          </div>
+          <button
+            onClick={onReset}
+            className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-grad-yt text-white text-xs font-bold shadow-glow hover:opacity-90 transition flex-shrink-0"
+          >
+            내 결과 보기
+          </button>
+        </div>
+      )}
+
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <div className="text-xs text-zinc-500">분석 완료</div>
+          <div className="text-xs text-zinc-500">
+            {isSample ? '샘플 모드' : '분석 완료'}
+          </div>
           <h1 className="text-2xl md:text-3xl font-bold text-zinc-100">내 YouTube 인사이트</h1>
         </div>
         <div className="flex items-center gap-2">
@@ -51,7 +79,7 @@ export default function Dashboard({ data, onReset }) {
             className="inline-flex items-center gap-2 px-3 py-2 rounded-lg text-sm bg-bg-elevated border border-zinc-800 text-zinc-200 hover:bg-zinc-800 transition"
           >
             <RotateCcw className="w-4 h-4" />
-            새 파일 분석
+            {isSample ? '랜딩으로' : '새 파일 분석'}
           </button>
         </div>
       </div>
@@ -80,6 +108,13 @@ export default function Dashboard({ data, onReset }) {
       {/* Tab: 내 유형 */}
       {activeTab === 'result' && (
         <div className="space-y-5 animate-fade-up">
+          {/* Dopamine gauge + Reality check — THE attention-grabbing block */}
+          <DopamineBlock
+            personality={personality}
+            indices={indices}
+            stats={stats}
+            sourceCounts={sourceCounts}
+          />
           {sourceCounts && <SourceSummary counts={sourceCounts} />}
           <PersonalityCard
             personality={personality}
@@ -183,6 +218,9 @@ export default function Dashboard({ data, onReset }) {
           </Card>
         </div>
       )}
+
+      {/* Bottom ad banner */}
+      <AdBanner slot="dashboard-bottom" variant="leaderboard" />
 
       <footer className="pt-2 pb-10 text-center text-xs text-zinc-600">
         모든 분석은 내 브라우저에서만 처리됩니다 · Shorts Insight

@@ -1,7 +1,9 @@
 import {
   Sparkles, Flame, Moon, Compass, Target, Heart,
   Zap, Calendar, Sunrise, Smartphone, Repeat,
+  HeartHandshake, Swords, Share2,
 } from 'lucide-react';
+import { PERSONALITIES } from '../utils/detectPersonality';
 
 const INDEX_META = [
   { key: 'dopamine',   label: '도파민',    icon: Flame,      bar: 'from-red-400 to-orange-300' },
@@ -123,6 +125,69 @@ export default function PersonalityCard({ personality, stats, topCategories, ind
           </div>
         </div>
       )}
+
+      {/* Compatibility — best/worst match. Strong viral hook: "내 친구랑 궁합은?" */}
+      {(personality.bestMatch || personality.worstMatch) && (
+        <CompatibilityBlock personality={personality} />
+      )}
+    </div>
+  );
+}
+
+function CompatibilityBlock({ personality }) {
+  const best = PERSONALITIES[personality.bestMatch];
+  const worst = PERSONALITIES[personality.worstMatch];
+  return (
+    <div className="relative z-10 mt-6 rounded-2xl bg-black/35 backdrop-blur border border-white/10 p-4">
+      <div className="flex items-center justify-between mb-3">
+        <span className="text-xs font-semibold text-white/90 tracking-wide inline-flex items-center gap-1.5">
+          <HeartHandshake className="w-4 h-4" />
+          유형 궁합표
+        </span>
+        <span className="text-[10px] text-white/60">친구랑 비교해봐요</span>
+      </div>
+
+      <div className="grid grid-cols-2 gap-3">
+        {best && (
+          <div className="rounded-xl bg-emerald-500/15 border border-emerald-400/30 p-3">
+            <div className="flex items-center gap-1.5 text-[10px] text-emerald-200 font-semibold mb-1.5">
+              <HeartHandshake className="w-3 h-3" />
+              찰떡 궁합
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="text-3xl drop-shadow">{best.emoji}</div>
+              <div className="min-w-0">
+                <div className="text-xs font-bold text-white truncate">{best.name}</div>
+                <div className="text-[10px] text-white/70 line-clamp-2 leading-snug mt-0.5">
+                  {best.tagline}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+        {worst && (
+          <div className="rounded-xl bg-red-500/15 border border-red-400/30 p-3">
+            <div className="flex items-center gap-1.5 text-[10px] text-red-200 font-semibold mb-1.5">
+              <Swords className="w-3 h-3" />
+              상극 궁합
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="text-3xl drop-shadow">{worst.emoji}</div>
+              <div className="min-w-0">
+                <div className="text-xs font-bold text-white truncate">{worst.name}</div>
+                <div className="text-[10px] text-white/70 line-clamp-2 leading-snug mt-0.5">
+                  {worst.tagline}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+
+      <div className="mt-3 flex items-center justify-center gap-1.5 text-[11px] text-white/80 bg-white/10 rounded-xl py-2">
+        <Share2 className="w-3.5 h-3.5" />
+        <span>친구에게 "너도 해봐" 링크 보내서 궁합 확인해보세요</span>
+      </div>
     </div>
   );
 }

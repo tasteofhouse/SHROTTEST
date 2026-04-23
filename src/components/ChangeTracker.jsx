@@ -1,6 +1,17 @@
-import { useState } from 'react';
-import { Trash2, TrendingUp, TrendingDown, Minus, History } from 'lucide-react';
+import { useMemo, useState } from 'react';
+import {
+  Trash2,
+  TrendingUp,
+  TrendingDown,
+  Minus,
+  History,
+  Target,
+  CheckCircle2,
+  XCircle,
+  CircleDashed,
+} from 'lucide-react';
 import { loadHistory, clearHistory, deleteEntry } from '../utils/historyStorage';
+import { loadAlgorithmTarget, describeCategory } from './AlgorithmGuide';
 
 function Delta({ current, prev, suffix = '', higherIsBetter = true, digits = 0 }) {
   const diff = current - prev;
@@ -81,6 +92,9 @@ export default function ChangeTracker() {
 
   return (
     <div className="space-y-5">
+      {/* Algorithm Diet Report — pinned at top when user has set targets */}
+      <DietReport previous={previous} latest={latest} />
+
       {/* Comparison card */}
       <div className="rounded-2xl border border-zinc-800 bg-bg-card overflow-hidden">
         <div className="px-5 py-4 border-b border-zinc-800">
@@ -195,6 +209,130 @@ export default function ChangeTracker() {
         {history.map((entry) => (
           <EntryCard key={entry.id} entry={entry} onDelete={() => handleDelete(entry.id)} />
         ))}
+      </div>
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Algorithm Diet Report — compares saved target categories (user-picked in
+// AlgorithmGuide) between previous and latest analysis.
+// ---------------------------------------------------------------------------
+function ratioFor(entry, catId) {
+  if (!entry || !catId) return 0;
+  const cats = entry.topCategories || entry.categoryDist || [];
+  const hit = cats.find((c) => c.id === catId);
+  return hit ? hit.ratio : 0;
+}
+
+function DietLine({ mode, catId, prev, curr }) {
+  const meta = describeCategory(catId);
+  if (!meta) return null;
+  const pct = (n) => Math.round(n * 1000) / 10; // 1 decimal
+  const diffP = pct(curr) - pct(prev);
+  const absP = Math.abs(diffP);
+
+  // For "want" mode: higher ratio = success. For "avoid": lower = success.
+  const success = mode === 'want' ? diffP > 0.5 : diffP < -0.5;
+  const flat = Math.abs(diffP) < 0.5;
+
+  const targetLabel = mode === 'want' ? '더 보고 싶다' : '그만 보고 싶다';
+  const tone = flat
+    ? {
+        bg: 'bg-zinc-800/40',
+        border: 'border-zinc-700',
+        icon: <CircleDashed className="w-5 h-5 text-zinc-400" />,
+        title: '변화 없음',
+        titleClass: 'text-zinc-300',
+        msg:
+          mode === 'want'
+            ? '아직 의미 있는 변화가 감지되지 않았어요. 조금 더 꾸준히!'
+            : '아직 줄어들지 않았어요. 관심 없음 클릭을 늘려봐요.',
+      }
+    : success
+      ? {
+          bg: 'bg-emerald-500/10',
+          border: 'border-emerald-500/30',
+          icon: <CheckCircle2 className="w-5 h-5 text-emerald-400" />,
+          title: '성공',
+          titleClass: 'text-emerald-300',
+          msg:
+            mode === 'want'
+              ? `목표대로 비중이 +${diffP.toFixed(1)}%p 올라갔어요! 🎉`
+              : `잘했어요! 비중이 ${diffP.toFixed(1)}%p 줄었어요. 💪`,
+        }
+      : {
+          bg: 'bg-red-500/10',
+          border: 'border-red-500/30',
+          icon: <XCircle className="w-5 h-5 text-red-400" />,
+          title: '실패',
+          titleClass: 'text-red-300',
+          msg:
+            mode === 'want'
+              ? `오히려 ${absP.toFixed(1)}%p 줄었어요. 알림 설정부터 다시 해봐요.`
+              : `오히려 ${absP.toFixed(1)}%p 늘었어요. 알고리즘 다이어트 다시 가동!`,
+        };
+
+  return (
+    <div className={`rounded-xl border ${tone.border} ${tone.bg} p-4 space-y-2`}>
+      <div className="flex items-center justify-between gap-3">
+        <div className="flex items-center gap-2 min-w-0">
+          {tone.icon}
+          <div className="min-w-0">
+            <div className="text-xs text-zinc-500">
+              {targetLabel} · <span className="text-zinc-400">{meta.emoji} {meta.label}</span>
+            </div>
+            <div className={`text-sm font-bold ${tone.titleClass}`}>{tone.title}</div>
+          </div>
+        </div>
+        <div className="flex items-center gap-2 text-xs whitespace-nowrap">
+          <span className="text-zinc-500 tabular-nums">{pct(prev).toFixed(1)}%</span>
+          <span className="text-zinc-700">→</span>
+          <span className="text-zinc-100 font-semibold tabular-nums">{pct(curr).toFixed(1)}%</span>
+          <span
+            className={`tabular-nums font-semibold ${
+              flat
+                ? 'text-zinc-500'
+                : success
+                  ? 'text-emerald-400'
+                  : 'text-red-400'
+            }`}
+          >
+            ({diffP > 0 ? '+' : ''}
+            {diffP.toFixed(1)}%p)
+          </span>
+        </div>
+      </div>
+      <p className="text-xs text-zinc-400 leading-relaxed">{tone.msg}</p>
+    </div>
+  );
+}
+
+function DietReport({ previous, latest }) {
+  const target = useMemo(() => loadAlgorithmTarget(), []);
+  if (!target || (!target.want && !target.avoid)) return null;
+
+  const wantPrev = ratioFor(previous, target.want);
+  const wantCurr = ratioFor(latest, target.want);
+  const avoidPrev = ratioFor(previous, target.avoid);
+  const avoidCurr = ratioFor(latest, target.avoid);
+
+  return (
+    <div className="rounded-2xl border border-yt-orange/30 bg-gradient-to-br from-yt-red/10 via-yt-orange/5 to-transparent overflow-hidden">
+      <div className="px-5 py-4 border-b border-yt-orange/20 flex items-center gap-2">
+        <Target className="w-4 h-4 text-yt-orange" />
+        <h3 className="text-sm font-bold text-zinc-100">알고리즘 다이어트 성적표</h3>
+      </div>
+      <div className="p-4 space-y-3">
+        {target.want && (
+          <DietLine mode="want" catId={target.want} prev={wantPrev} curr={wantCurr} />
+        )}
+        {target.avoid && (
+          <DietLine mode="avoid" catId={target.avoid} prev={avoidPrev} curr={avoidCurr} />
+        )}
+        <p className="text-[11px] text-zinc-500">
+          ※ 목표는 [알고리즘 관리] 탭에서 언제든 변경할 수 있어요.
+        </p>
       </div>
     </div>
   );
