@@ -38,28 +38,66 @@ export function isYouTubeView(entry) {
 
 // In-feed Google Ads get written to watch history with a 'From Google Ads'
 // marker in details. Exclude — these aren't real watches.
+// Also catches the Korean locale variant ("Google 광고") and any other
+// "From ... Ads" formulations Takeout has used over the years.
 export function isAdEntry(entry) {
-  if (!Array.isArray(entry?.details)) return false;
-  return entry.details.some(
-    (d) => d && typeof d.name === 'string' && /from google ads/i.test(d.name)
-  );
+  if (Array.isArray(entry?.details)) {
+    const hit = entry.details.some(
+      (d) => d && typeof d.name === 'string' && /google.*ads?|광고/i.test(d.name)
+    );
+    if (hit) return true;
+  }
+  // HTML fallback — some Takeout HTML cells don't have `details` at all.
+  // Check titleUrl / channelUrl for ad-serving domains as a second signal.
+  const urls = [entry?.titleUrl, entry?.subtitles?.[0]?.url].filter(Boolean);
+  for (const u of urls) {
+    if (/googleadservices\.com|doubleclick\.net|\/pagead\//i.test(u)) return true;
+  }
+  return false;
+}
+
+// Normalize a raw channel-name string: trims whitespace, rejects URLs
+// mistakenly stored as the name, and collapses to empty if it's just a
+// placeholder ("YouTube", "Google Ads", etc).
+function cleanChannelName(raw) {
+  if (typeof raw !== 'string') return '';
+  const t = raw.replace(/\s+/g, ' ').trim();
+  if (!t) return '';
+  if (/^https?:\/\//i.test(t)) return '';
+  if (/^(YouTube|Google Ads?|광고)$/i.test(t)) return '';
+  return t;
 }
 
 // Deleted / private / region-blocked / taken-down videos: Takeout keeps the
 // row but drops the `subtitles` array (no channel) and stores the raw URL as
 // the `title`. There is nothing useful to classify — they just inflate the
 // "알 수 없는 채널" bucket. Drop at parse time.
+//
+// Also covers the "subtitles present but name missing/whitespace/URL" case
+// that was slipping through the original filter.
 export function isUnavailableEntry(entry) {
-  const hasChannel =
-    Array.isArray(entry?.subtitles) &&
-    entry.subtitles.length > 0 &&
-    !!entry.subtitles[0]?.name;
-  if (hasChannel) return false;
+  const rawChannel =
+    Array.isArray(entry?.subtitles) && entry.subtitles.length > 0
+      ? entry.subtitles[0]?.name
+      : '';
+  const channel = cleanChannelName(rawChannel);
+  const hasChannel = !!channel;
+
   const rawTitle = (entry?.title || '').trim();
-  if (!rawTitle) return true;
-  if (/^https?:\/\//i.test(rawTitle)) return true;
-  // Korean Takeout deleted-video placeholder: "동영상을 시청했습니다"
-  if (/^동영상\s*을\(를\)?\s*시청했습니다\.?$/.test(rawTitle)) return true;
+  const titleIsPlaceholder =
+    !rawTitle ||
+    /^https?:\/\//i.test(rawTitle) ||
+    /^동영상\s*을\(를\)?\s*시청했습니다\.?$/.test(rawTitle) ||
+    /^watched\s+https?:\/\//i.test(rawTitle);
+
+  // Both missing → definitely unusable
+  if (!hasChannel && titleIsPlaceholder) return true;
+  // No channel, and the only title hint is the "Watched a video" stub → drop
+  if (!hasChannel && /^(watched\s+)?a video that/i.test(rawTitle)) return true;
+  // No channel AT ALL — we'd only be able to display '알 수 없는 채널',
+  // which is the exact bucket the user complained about. Drop it even if
+  // there's a title, since it's unrecoverable signal for channel analysis.
+  if (!hasChannel) return true;
   return false;
 }
 
@@ -88,8 +126,10 @@ export function normalizeEntry(entry) {
   const title = cleanTitle(entry.title || '');
   const sub = entry.subtitles && entry.subtitles[0];
   // Some Takeout rows have `subtitles: [{}]` — a present array with an empty
-  // object. Guard against undefined `name` so we don't bucket those as literal "undefined".
-  const channel = sub && sub.name ? sub.name : '알 수 없는 채널';
+  // object. Also `{ url: "..."}` with no `name`. Normalize so we never end
+  // up with literal "undefined" or URL-looking channel strings.
+  const cleanedChannel = cleanChannelName(sub?.name);
+  const channel = cleanedChannel || '알 수 없는 채널';
   const channelUrl = sub && sub.url ? sub.url : null;
   const time = entry.time ? new Date(entry.time) : null;
 
@@ -190,6 +230,22 @@ export async function readFileAsText(file) {
 //     </div>
 //   </div>
 
+// Classify an HTML anchor: is it a YouTube *channel* link (not a video,
+// not an ad redirect, not a playlist)?
+function isChannelHref(href) {
+  if (!href) return false;
+  // Ad redirects / tracking
+  if (/googleadservices\.com|doubleclick\.net|\/pagead\//i.test(href)) return false;
+  // YouTube channel URL shapes: /channel/UC..., /@handle, /c/name, /user/name
+  return /youtube\.com\/(channel\/|@|c\/|user\/)/i.test(href);
+}
+
+function cellMentionsAd(cellText) {
+  if (!cellText) return false;
+  // Google locale strings that Takeout sprinkles into ad cells.
+  return /From Google Ads|Google Ads에서 제공|Google 광고|광고.*표시/i.test(cellText);
+}
+
 function buildEntryFromCell(cell) {
   // Skip header cells — we only want content cells with watch data.
   const anchors = cell.querySelectorAll('a');
@@ -213,15 +269,28 @@ function buildEntryFromCell(cell) {
   // prefix is often "Watched " / "시청함 " / "" — combine with title text
   const rawTitle = prefix ? `${prefix}${titleText}` : titleText;
 
-  // Second anchor is the channel (if present)
+  // Find the CHANNEL anchor specifically — second anchor isn't always the
+  // channel; it can be an ad redirect or a playlist link. Walk all anchors
+  // and pick the first one whose href is a YouTube channel URL.
   let subtitles;
-  if (anchors[1]) {
-    subtitles = [{ name: anchors[1].textContent || '', url: anchors[1].getAttribute('href') || '' }];
+  for (let i = 1; i < anchors.length; i++) {
+    const href = anchors[i].getAttribute('href') || '';
+    if (isChannelHref(href)) {
+      subtitles = [
+        { name: (anchors[i].textContent || '').trim(), url: href },
+      ];
+      break;
+    }
   }
 
   // Time is the last line of text in the cell. Takeout emits a long form like:
   // "2024. 3. 14. 오후 9:12:34 GMT+9" (ko) or "Mar 14, 2024, 9:12:34 PM KST" (en)
   const cellText = cell.textContent || '';
+
+  // Synthesize a `details` entry when the cell looks like an ad, so the
+  // shared `isAdEntry` predicate catches HTML ads too.
+  const details = cellMentionsAd(cellText) ? [{ name: 'From Google Ads' }] : undefined;
+
   // last non-empty line
   const lines = cellText
     .split('\n')
@@ -235,6 +304,7 @@ function buildEntryFromCell(cell) {
     title: rawTitle,
     titleUrl,
     subtitles,
+    details,
     time: parsedTime ? parsedTime.toISOString() : null,
     // We can't easily recover `products` from HTML, but leaving it undefined
     // is fine — isYouTubeView already treats header === 'YouTube' as enough.

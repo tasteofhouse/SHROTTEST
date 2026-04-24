@@ -2,6 +2,19 @@
 
 const WEEKDAYS = ['일', '월', '화', '수', '목', '금', '토'];
 
+// Last-line defense against garbage channel names that slipped past the
+// parser-layer filter (`isUnavailableEntry`, `cleanChannelName`). Any of
+// these should never surface in top-channel lists.
+function isValidChannelName(name) {
+  if (!name || typeof name !== 'string') return false;
+  const t = name.trim();
+  if (!t) return false;
+  if (t === '알 수 없는 채널') return false;
+  if (/^https?:\/\//i.test(t)) return false;
+  if (/^(YouTube|YouTube Music|Google Ads?|광고|undefined|null)$/i.test(t)) return false;
+  return true;
+}
+
 // Split a view list by source tag ('music' | 'shorts' | 'video').
 // Returns { music, shorts, video, yt } where `yt` = shorts + video
 // (YouTube side). All main analysis should run on `yt`.
@@ -32,7 +45,7 @@ export function analyzeMusicViews(musicViews) {
     const h = v.time.getHours();
     hourCount[h] += 1;
     if (h >= 0 && h <= 5) nightCount += 1;
-    if (!v.channel || v.channel === '알 수 없는 채널') continue;
+    if (!isValidChannelName(v.channel)) continue;
     channelMap.set(v.channel, (channelMap.get(v.channel) || 0) + 1);
   }
   const topArtists = Array.from(channelMap.entries())
@@ -74,9 +87,8 @@ export function analyzeHourDayHeatmap(shorts) {
 export function analyzeTopChannels(shorts, topN = 5) {
   const map = new Map();
   for (const s of shorts) {
-    // '알 수 없는 채널' is a junk bucket, not a real channel. Keep it out of
-    // the top list even if some slipped past the parser filter.
-    if (!s.channel || s.channel === '알 수 없는 채널') continue;
+    // Final safety net against junk channel names (see `isValidChannelName`).
+    if (!isValidChannelName(s.channel)) continue;
     map.set(s.channel, (map.get(s.channel) || 0) + 1);
   }
   return Array.from(map.entries())
@@ -131,7 +143,7 @@ export function summaryStats(shorts) {
     dayCount[s.time.getDay()] += 1;
     if (h >= 0 && h <= 5) nightCount += 1;
     if (s.isShort) shortsCount += 1;
-    channels.add(s.channel);
+    if (isValidChannelName(s.channel)) channels.add(s.channel);
     const key = s.time.toISOString().slice(0, 10);
     dailyBuckets.set(key, (dailyBuckets.get(key) || 0) + 1);
   }
