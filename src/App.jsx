@@ -5,8 +5,48 @@ import AnalysisProgress from './components/AnalysisProgress';
 import Dashboard from './components/Dashboard';
 import { VariantSwitch, VARIANT_IDS } from './components/ShareCard';
 import { buildSampleResult } from './utils/sampleData';
-import { Play, Info, Shuffle, ExternalLink } from 'lucide-react';
+import { Play, Info, Shuffle, ExternalLink, Globe } from 'lucide-react';
+import { useT, LANG_META } from './i18n/index.jsx';
 import './App.css';
+
+function LangSwitcher() {
+  const { lang, setLang } = useT();
+  const [open, setOpen] = useState(false);
+  return (
+    <div className="relative">
+      <button
+        onClick={() => setOpen((v) => !v)}
+        className="inline-flex items-center gap-1 px-2 py-1 rounded-lg border border-zinc-800 bg-bg-elevated text-xs text-zinc-300 hover:bg-zinc-800 transition"
+        aria-label="Change language"
+      >
+        <Globe className="w-3.5 h-3.5" />
+        <span>{LANG_META[lang]?.flag}</span>
+        <span className="hidden sm:inline">{LANG_META[lang]?.label}</span>
+      </button>
+      {open && (
+        <>
+          <button
+            onClick={() => setOpen(false)}
+            className="fixed inset-0 z-30 cursor-default"
+            aria-hidden="true"
+          />
+          <div className="absolute right-0 top-full mt-1 z-40 w-32 rounded-lg border border-zinc-800 bg-bg-elevated shadow-xl overflow-hidden">
+            {Object.values(LANG_META).map((meta) => (
+              <button
+                key={meta.code}
+                onClick={() => { setLang(meta.code); setOpen(false); }}
+                className={`w-full flex items-center gap-2 px-3 py-2 text-sm text-left hover:bg-zinc-800 transition ${lang === meta.code ? 'text-white bg-zinc-800/60' : 'text-zinc-300'}`}
+              >
+                <span>{meta.flag}</span>
+                <span>{meta.label}</span>
+              </button>
+            ))}
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
 
 // Build synthetic personality/stats/top3/indices objects from a compact shared payload
 function hydratePayload(payload) {
@@ -49,6 +89,7 @@ function hydratePayload(payload) {
 
 // Shared result view — picks 1 of 30 variants at random (seeded by payload or fresh)
 function SharedResultView({ payload, onStart }) {
+  const { t } = useT();
   const data = useMemo(() => hydratePayload(payload), [payload]);
   const [variant, setVariant] = useState(() => {
     return VARIANT_IDS[Math.floor(Math.random() * VARIANT_IDS.length)];
@@ -65,8 +106,8 @@ function SharedResultView({ payload, onStart }) {
     <div className="min-h-[calc(100vh-80px)] flex flex-col items-center justify-center px-6 py-10 text-center">
       <div className="w-full max-w-sm space-y-5">
         <div>
-          <p className="text-xs text-zinc-500 tracking-wider">친구의 YouTube 취향</p>
-          <p className="text-[10px] text-zinc-600 mt-0.5">랜덤으로 고른 카드 · 총 {VARIANT_IDS.length}종</p>
+          <p className="text-xs text-zinc-500 tracking-wider">{t('shared.headline')}</p>
+          <p className="text-[10px] text-zinc-600 mt-0.5">{t('shared.subCount', { n: VARIANT_IDS.length })}</p>
         </div>
 
         <div className="flex justify-center">
@@ -86,19 +127,19 @@ function SharedResultView({ payload, onStart }) {
             className="inline-flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-xl bg-bg-elevated border border-zinc-700 text-zinc-100 text-sm hover:bg-zinc-800 transition"
           >
             <Shuffle className="w-4 h-4" />
-            다른 카드 보기
+            {t('shared.reshuffle')}
           </button>
           <button
             onClick={onStart}
             className="inline-flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-xl bg-grad-yt text-white text-sm font-bold shadow-glow hover:opacity-90 transition"
           >
             <ExternalLink className="w-4 h-4" />
-            나도 테스트
+            {t('shared.takeTest')}
           </button>
         </div>
 
         <p className="text-[10px] text-zinc-600">
-          새로고침하면 다른 스타일의 카드가 나와요
+          {t('shared.reshuffleHint')}
         </p>
       </div>
     </div>
@@ -106,6 +147,7 @@ function SharedResultView({ payload, onStart }) {
 }
 
 export default function App() {
+  const { t } = useT();
   // step: 'landing' | 'shared' | 'upload' | 'analyzing' | 'result' | 'sample'
   const [step, setStep] = useState('landing');
   const [views, setViews] = useState(null);
@@ -172,11 +214,14 @@ export default function App() {
           <div className="w-8 h-8 rounded-lg bg-grad-yt flex items-center justify-center">
             <Play className="w-4 h-4 text-white" fill="white" />
           </div>
-          <span className="font-bold text-zinc-100">Shorts Insight</span>
+          <span className="font-bold text-zinc-100">{t('app.title')}</span>
         </button>
-        <div className="flex items-center gap-1.5 text-xs text-zinc-500">
-          <Info className="w-4 h-4" />
-          <span className="hidden sm:inline">Privacy-first · 클라이언트사이드</span>
+        <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5 text-xs text-zinc-500">
+            <Info className="w-4 h-4" />
+            <span className="hidden sm:inline">{t('app.privacyBadge')}</span>
+          </div>
+          <LangSwitcher />
         </div>
       </header>
 

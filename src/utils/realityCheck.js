@@ -3,6 +3,8 @@
 // Music is tracked separately (listening while doing other things) so we don't
 // count it toward "wasted time" — that would be unfair.
 
+import { translate } from '../i18n/index.jsx';
+
 const VIDEO_SECONDS = 300;   // 5 min
 const SHORTS_SECONDS = 30;   // 30 sec
 
@@ -93,13 +95,19 @@ export function estimateWatchSeconds({ sourceCounts, stats }) {
 
 // Pick top-N alternatives that are "interesting" — prefer ones where the
 // result is ≥ 1 (otherwise it reads awkwardly) and showcase variety.
-export function computeAlternatives(totalSeconds, limit = 4) {
+export function computeAlternatives(totalSeconds, limit = 4, lang) {
   const totalMinutes = totalSeconds / 60;
   return ALTERNATIVES
     .map((alt) => {
       const raw = totalMinutes / alt.minutes;
+      const base = { ...alt };
+      if (lang) {
+        base.label = translate(lang, `realityCheck.alternatives.${alt.id}.label`) || alt.label;
+        base.unit = translate(lang, `realityCheck.alternatives.${alt.id}.unit`) || alt.unit;
+        base.verb = translate(lang, `realityCheck.alternatives.${alt.id}.verb`) || alt.verb;
+      }
       return {
-        ...alt,
+        ...base,
         count: raw,
         display: raw >= 10 ? Math.round(raw) : raw >= 1 ? raw.toFixed(1) : raw.toFixed(2),
         qualifies: raw >= 0.5,
@@ -110,28 +118,32 @@ export function computeAlternatives(totalSeconds, limit = 4) {
     .slice(0, limit);
 }
 
-// Human-readable "3일 7시간 12분" style string.
-export function formatDuration(totalSeconds) {
+// Human-readable "3일 7시간 12분" / "3d 7h 12m" style string.
+export function formatDuration(totalSeconds, lang) {
+  const d = lang ? translate(lang, 'realityCheck.units.days')    : '일';
+  const h = lang ? translate(lang, 'realityCheck.units.hours')   : '시간';
+  const m = lang ? translate(lang, 'realityCheck.units.minutes') : '분';
+  const s = lang ? translate(lang, 'realityCheck.units.seconds') : '초';
   if (!totalSeconds || totalSeconds < 60) {
-    return `${Math.round(totalSeconds || 0)}초`;
+    return `${Math.round(totalSeconds || 0)}${s}`;
   }
   const days = Math.floor(totalSeconds / 86400);
   const hours = Math.floor((totalSeconds % 86400) / 3600);
   const minutes = Math.floor((totalSeconds % 3600) / 60);
   const parts = [];
-  if (days) parts.push(`${days}일`);
-  if (hours) parts.push(`${hours}시간`);
-  if (minutes && days === 0) parts.push(`${minutes}분`);
-  return parts.join(' ') || `${Math.round(totalSeconds / 60)}분`;
+  if (days) parts.push(`${days}${d}`);
+  if (hours) parts.push(`${hours}${h}`);
+  if (minutes && days === 0) parts.push(`${minutes}${m}`);
+  return parts.join(' ') || `${Math.round(totalSeconds / 60)}${m}`;
 }
 
 // Combined summary payload for the UI.
-export function buildRealityCheck({ sourceCounts, stats }) {
+export function buildRealityCheck({ sourceCounts, stats, lang }) {
   const seconds = estimateWatchSeconds({ sourceCounts, stats });
   return {
     seconds,
-    durationText: formatDuration(seconds),
-    alternatives: computeAlternatives(seconds, 4),
+    durationText: formatDuration(seconds, lang),
+    alternatives: computeAlternatives(seconds, 4, lang),
     perDayMinutes: stats?.spanDays ? seconds / 60 / stats.spanDays : 0,
   };
 }

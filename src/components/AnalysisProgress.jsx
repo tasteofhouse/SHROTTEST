@@ -13,24 +13,7 @@ import {
 import { detectPersonality } from '../utils/detectPersonality';
 import { saveAnalysis } from '../utils/historyStorage';
 import AdBanner from './AdBanner';
-
-const STEPS = [
-  { label: '파일 업로드 완료', desc: '시청 기록을 불러왔어요' },
-  { label: '데이터 추출 중', desc: '채널과 카테고리를 분류하는 중...' },
-  { label: '패턴 분석 중', desc: '시청 시간대·추이를 분석하는 중...' },
-  { label: '결과 생성 중', desc: '취향 유형을 계산하는 중...' },
-];
-
-// Rotating teaser lines that keep the loading screen from feeling dead.
-// Lean into the "매운맛" voice so the ad screen still entertains.
-const LOADING_FLAVOR = [
-  '당신의 도파민을 끌어모으는 중...',
-  '새벽 3시에 뭘 봤는지 기억하시나요?',
-  '그동안 낭비한 시간, 공개 직전...',
-  '알고리즘의 숨겨진 의도를 분석 중...',
-  '현타 수치를 계산하는 중입니다...',
-  '유형 카드 22장을 매칭하는 중...',
-];
+import { useT } from '../i18n/index.jsx';
 
 // Enforce a minimum duration on the loading screen — the analysis itself is
 // usually sub-second for 5k views, but the user deserves a beat to absorb
@@ -42,6 +25,16 @@ function delay(ms) {
 }
 
 export default function AnalysisProgress({ views, onDone }) {
+  const { t } = useT();
+  const flavorList = t('analysis.flavor');
+  const flavorArr = Array.isArray(flavorList) ? flavorList : [];
+  const STEPS = [
+    { label: t('analysis.step0.label'), desc: t('analysis.step0.desc') },
+    { label: t('analysis.step1.label'), desc: t('analysis.step1.desc') },
+    { label: t('analysis.step2.label'), desc: t('analysis.step2.desc') },
+    { label: t('analysis.step3.label'), desc: t('analysis.step3.desc') },
+  ];
+
   const [currentStep, setCurrentStep] = useState(0);
   const [progress, setProgress] = useState(8);
   const [flavorIdx, setFlavorIdx] = useState(0);
@@ -50,10 +43,10 @@ export default function AnalysisProgress({ views, onDone }) {
   // Rotate the flavor tagline every ~1.2s to keep the screen alive.
   useEffect(() => {
     const h = setInterval(() => {
-      setFlavorIdx((i) => (i + 1) % LOADING_FLAVOR.length);
+      setFlavorIdx((i) => (i + 1) % Math.max(1, flavorArr.length));
     }, 1200);
     return () => clearInterval(h);
-  }, []);
+  }, [flavorArr.length]);
 
   useEffect(() => {
     if (ran.current) return;
@@ -145,16 +138,16 @@ export default function AnalysisProgress({ views, onDone }) {
       <div className="w-full max-w-md space-y-6">
         <div className="text-center animate-fade-up">
           <div className="text-6xl mb-4">🔍</div>
-          <h2 className="text-2xl font-bold text-zinc-100">시청 기록 분석 중</h2>
+          <h2 className="text-2xl font-bold text-zinc-100">{t('analysis.title')}</h2>
           <p className="text-zinc-400 mt-2 text-sm">
-            {views?.length?.toLocaleString()}개 영상을 분석하고 있어요
+            {t('analysis.subtitle', { n: views?.length?.toLocaleString?.() ?? 0 })}
           </p>
           {/* Rotating flavor line — text fades between rotations */}
           <p
             key={flavorIdx}
             className="mt-3 text-sm font-semibold text-yt-orange animate-fade-up"
           >
-            {LOADING_FLAVOR[flavorIdx]}
+            {flavorArr[flavorIdx] || ''}
           </p>
         </div>
 
@@ -204,17 +197,17 @@ export default function AnalysisProgress({ views, onDone }) {
                 </span>
               </div>
               {i < currentStep && (
-                <span className="text-xs text-emerald-500">완료</span>
+                <span className="text-xs text-emerald-500">{t('analysis.stepDone')}</span>
               )}
               {i === currentStep && (
-                <span className="text-xs text-yt-orange animate-pulse">진행 중</span>
+                <span className="text-xs text-yt-orange animate-pulse">{t('analysis.stepInProgress')}</span>
               )}
             </div>
           ))}
         </div>
 
         <p className="text-center text-xs text-zinc-600">
-          파일은 분석 완료 후 메모리에서 즉시 제거됩니다
+          {t('analysis.privacyNote')}
         </p>
       </div>
     </div>

@@ -1,33 +1,34 @@
 import { Flame, Clock, Sparkles } from 'lucide-react';
 import { buildRealityCheck } from '../utils/realityCheck';
+import { useT } from '../i18n/index.jsx';
 
 // Color bands for the dopamine gauge — stays aligned with detectPersonality
 // dopamineLevel baseline thresholds.
-function gaugeToneFor(value) {
+function gaugeToneFor(value, t) {
   if (value >= 85) return {
     from: 'from-red-500', to: 'to-orange-400', text: 'text-red-300',
     badge: 'bg-red-500/20 border-red-500/40 text-red-200',
-    verdict: '🚨 빨간불 — 지금 당장 스크롤 내려놓기',
+    verdict: t('dopamine.verdicts.red'),
   };
   if (value >= 70) return {
     from: 'from-orange-500', to: 'to-amber-400', text: 'text-orange-300',
     badge: 'bg-orange-500/20 border-orange-500/40 text-orange-200',
-    verdict: '⚠️ 주의 — 한 번만 더가 10분 뒤',
+    verdict: t('dopamine.verdicts.warning'),
   };
   if (value >= 50) return {
     from: 'from-yellow-400', to: 'to-lime-400', text: 'text-yellow-300',
     badge: 'bg-yellow-500/15 border-yellow-500/30 text-yellow-100',
-    verdict: '🟡 보통 — 적당히 즐기는 중',
+    verdict: t('dopamine.verdicts.normal'),
   };
   if (value >= 30) return {
     from: 'from-emerald-500', to: 'to-cyan-400', text: 'text-emerald-300',
     badge: 'bg-emerald-500/15 border-emerald-500/30 text-emerald-200',
-    verdict: '🟢 안전 — 건강한 시청 습관',
+    verdict: t('dopamine.verdicts.safe'),
   };
   return {
     from: 'from-sky-500', to: 'to-indigo-400', text: 'text-sky-300',
     badge: 'bg-sky-500/15 border-sky-500/30 text-sky-200',
-    verdict: '💎 절제러 — 유튜브보다 할 일 많은 분',
+    verdict: t('dopamine.verdicts.minimal'),
   };
 }
 
@@ -40,9 +41,10 @@ function finalDopamineScore(personality, indices) {
 }
 
 export default function DopamineBlock({ personality, indices, stats, sourceCounts }) {
+  const { t, lang } = useT();
   const value = finalDopamineScore(personality, indices);
-  const tone = gaugeToneFor(value);
-  const reality = buildRealityCheck({ sourceCounts, stats });
+  const tone = gaugeToneFor(value, t);
+  const reality = buildRealityCheck({ sourceCounts, stats, lang });
 
   return (
     <section className="rounded-3xl border border-zinc-800 bg-bg-card overflow-hidden">
@@ -55,10 +57,10 @@ export default function DopamineBlock({ personality, indices, stats, sourceCount
               Dopamine Index
             </div>
             <h3 className="text-lg md:text-xl font-bold text-zinc-100 mt-0.5">
-              도파민 중독 지수
+              {t('dopamine.title')}
             </h3>
             <p className="text-xs text-zinc-500 mt-1">
-              시청 패턴 + 유형 기반으로 계산한 의존도
+              {t('dopamine.subtitle')}
             </p>
           </div>
           <div className="flex flex-col items-end gap-1">
@@ -99,10 +101,10 @@ export default function DopamineBlock({ personality, indices, stats, sourceCount
                 Reality Check
               </div>
               <h3 className="text-lg md:text-xl font-bold text-zinc-100 mt-0.5">
-                현타 타임 — 이 시간이면…
+                {t('dopamine.realityCheck.title')}
               </h3>
               <p className="text-xs text-zinc-500 mt-1">
-                일반 영상 5분 · 쇼츠 30초 기준 추정치
+                {t('dopamine.realityCheck.subtitle')}
               </p>
             </div>
             <div className="flex flex-col items-end">
@@ -111,7 +113,7 @@ export default function DopamineBlock({ personality, indices, stats, sourceCount
               </div>
               {reality.perDayMinutes > 0 && (
                 <div className="text-[10px] text-zinc-500 mt-0.5">
-                  하루 평균 {Math.round(reality.perDayMinutes)}분
+                  {t('dopamine.realityCheck.perDayNote', { minutes: Math.round(reality.perDayMinutes) })}
                 </div>
               )}
             </div>

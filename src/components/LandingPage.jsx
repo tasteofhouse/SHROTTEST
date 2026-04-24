@@ -13,6 +13,7 @@ import {
   Beaker,
   Plane,
 } from 'lucide-react';
+import { useT } from '../i18n/index.jsx';
 
 // Pre-configured URL: deep-links into Takeout with YouTube pre-selected, so
 // the user only has to scroll, toggle "history" and download.
@@ -255,6 +256,7 @@ const FAQ = [
 ];
 
 export default function LandingPage({ onStart, onTrySample }) {
+  const { t } = useT();
   // Guide opens by default now — MVP users said the flow wasn't obvious.
   const [guideOpen, setGuideOpen] = useState(true);
   const [faqOpen, setFaqOpen] = useState(false);
@@ -265,21 +267,17 @@ export default function LandingPage({ onStart, onTrySample }) {
       <main className="flex flex-col items-center justify-center px-6 py-16 text-center">
         <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/5 border border-zinc-800 text-xs text-zinc-400 mb-6 animate-fade-up">
           <Sparkles className="w-3.5 h-3.5 text-yt-orange" />
-          내 YouTube 시청 취향을 15초 만에 분석
+          {t('landing.hero.badge')}
         </div>
 
         <h1 className="text-4xl md:text-6xl font-bold tracking-tight text-zinc-50 leading-tight mb-5 max-w-2xl animate-fade-up">
-          당신의 시청 기록은
-          <br />
           <span className="bg-grad-yt bg-clip-text text-transparent">
-            당신을 말해줍니다
+            {t('landing.hero.title')}
           </span>
         </h1>
 
         <p className="text-zinc-400 text-base md:text-lg max-w-xl mb-6 animate-fade-up">
-          Google Takeout에서 받은 YouTube 시청 기록 파일만 올리면,
-          <br className="hidden md:block" />
-          취향 유형과 숨겨진 시청 패턴을 한눈에 보여드려요.
+          {t('landing.hero.subtitle')}
         </p>
 
         {/* Two primary actions — Takeout download first, then analyze */}
@@ -298,7 +296,7 @@ export default function LandingPage({ onStart, onTrySample }) {
             className="inline-flex items-center justify-center gap-2 px-8 py-4 rounded-2xl bg-grad-yt text-white font-bold text-lg shadow-glow hover:opacity-90 hover:scale-[1.02] transition-all"
           >
             <Play className="w-5 h-5" fill="white" />
-            2️⃣ 분석 시작하기
+            {t('landing.hero.ctaStart')}
             <ChevronRight className="w-5 h-5" />
           </button>
         </div>
@@ -310,8 +308,7 @@ export default function LandingPage({ onStart, onTrySample }) {
             className="mt-3 inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-white/5 border border-zinc-700 text-zinc-200 text-sm hover:bg-white/10 transition animate-fade-up"
           >
             <Beaker className="w-4 h-4 text-yt-orange" />
-            샘플 결과 먼저 보기
-            <span className="text-[10px] text-zinc-500 ml-1">· 파일 없이 미리보기</span>
+            {t('landing.hero.ctaSample')}
           </button>
         )}
 
@@ -323,11 +320,10 @@ export default function LandingPage({ onStart, onTrySample }) {
           </div>
           <div>
             <p className="text-sm font-semibold text-emerald-300">
-              서버 전송 ZERO · 의심되면 비행기 모드로 확인하세요
+              {t('landing.privacyBox.title')}
             </p>
             <p className="text-xs text-emerald-400/80 leading-relaxed mt-0.5">
-              인터넷을 완전히 끊어도 분석이 동작합니다. 네트워크 탭 열어서 확인 가능.
-              파일은 내 브라우저 밖을 절대 나가지 않고, 끝나면 즉시 메모리에서 증발해요.
+              {t('landing.privacyBox.body')}
             </p>
           </div>
         </div>
@@ -506,7 +502,7 @@ export default function LandingPage({ onStart, onTrySample }) {
       </section>
 
       <footer className="pb-10 text-center text-xs text-zinc-700">
-        Shorts Insight · 모든 분석은 내 브라우저에서만 처리됩니다
+        Shorts Insight · {t('upload.footer')}
       </footer>
     </div>
   );

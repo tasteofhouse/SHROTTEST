@@ -13,16 +13,17 @@ import ChangeTracker from './ChangeTracker';
 import DopamineBlock from './DopamineBlock';
 import AdBanner from './AdBanner';
 import { RotateCcw, User, BarChart2, Compass, History, Share2, Film, Zap, Music2, Beaker } from 'lucide-react';
-
-const TABS = [
-  { id: 'result', label: '내 유형', icon: User },
-  { id: 'stats', label: '통계', icon: BarChart2 },
-  { id: 'guide', label: '알고리즘 가이드', icon: Compass },
-  { id: 'history', label: '변화 추적', icon: History },
-  { id: 'share', label: '공유하기', icon: Share2 },
-];
+import { useT } from '../i18n/index.jsx';
 
 export default function Dashboard({ data, onReset, isSample = false }) {
+  const { t } = useT();
+  const TABS = [
+    { id: 'result', label: t('dashboard.tabs.result'), icon: User },
+    { id: 'stats', label: t('dashboard.tabs.stats'), icon: BarChart2 },
+    { id: 'guide', label: t('dashboard.tabs.guide'), icon: Compass },
+    { id: 'history', label: t('dashboard.tabs.history'), icon: History },
+    { id: 'share', label: t('dashboard.tabs.feedback'), icon: Share2 },
+  ];
   const [activeTab, setActiveTab] = useState('result');
 
   const {
@@ -51,16 +52,16 @@ export default function Dashboard({ data, onReset, isSample = false }) {
             <Beaker className="w-5 h-5 text-yt-orange" />
           </div>
           <div className="flex-1">
-            <div className="text-sm font-bold text-yt-orange">[샘플 데이터] 가상의 '도파민 중독자' 결과</div>
+            <div className="text-sm font-bold text-yt-orange">{t('dashboard.sampleBanner.title')}</div>
             <div className="text-xs text-zinc-400 mt-0.5">
-              실제 결과를 보려면 "새 파일 분석" 버튼을 눌러 나의 시청 기록을 올려보세요.
+              {t('dashboard.sampleBanner.body')}
             </div>
           </div>
           <button
             onClick={onReset}
             className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-grad-yt text-white text-xs font-bold shadow-glow hover:opacity-90 transition flex-shrink-0"
           >
-            내 결과 보기
+            {t('dashboard.sampleBanner.cta')}
           </button>
         </div>
       )}
@@ -68,10 +69,7 @@ export default function Dashboard({ data, onReset, isSample = false }) {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <div className="text-xs text-zinc-500">
-            {isSample ? '샘플 모드' : '분석 완료'}
-          </div>
-          <h1 className="text-2xl md:text-3xl font-bold text-zinc-100">내 YouTube 인사이트</h1>
+          <h1 className="text-2xl md:text-3xl font-bold text-zinc-100">{t('app.title')}</h1>
         </div>
         <div className="flex items-center gap-2">
           <button
@@ -79,7 +77,7 @@ export default function Dashboard({ data, onReset, isSample = false }) {
             className="inline-flex items-center gap-2 px-3 py-2 rounded-lg text-sm bg-bg-elevated border border-zinc-800 text-zinc-200 hover:bg-zinc-800 transition"
           >
             <RotateCcw className="w-4 h-4" />
-            {isSample ? '랜딩으로' : '새 파일 분석'}
+            {t('dashboard.reset')}
           </button>
         </div>
       </div>
@@ -223,7 +221,7 @@ export default function Dashboard({ data, onReset, isSample = false }) {
       <AdBanner slot="dashboard-bottom" variant="leaderboard" />
 
       <footer className="pt-2 pb-10 text-center text-xs text-zinc-600">
-        모든 분석은 내 브라우저에서만 처리됩니다 · Shorts Insight
+        {t('upload.footer')} · Shorts Insight
       </footer>
     </div>
   );

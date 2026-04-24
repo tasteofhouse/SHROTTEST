@@ -4,6 +4,7 @@ import {
   HeartHandshake, Swords, Share2,
 } from 'lucide-react';
 import { PERSONALITIES } from '../utils/detectPersonality';
+import { useT } from '../i18n/index.jsx';
 
 const INDEX_META = [
   { key: 'dopamine',   label: '도파민',    icon: Flame,      bar: 'from-red-400 to-orange-300' },
@@ -18,14 +19,30 @@ const INDEX_META = [
   { key: 'steady',     label: '규칙성',    icon: Repeat,     bar: 'from-violet-300 to-indigo-300' },
 ];
 
+// Resolve localized name/tagline/description/vibe from i18n by personality id.
+// Falls back to whatever was originally on the object (Korean source).
+function localize(t, p) {
+  if (!p) return p;
+  const id = p.id;
+  return {
+    ...p,
+    name: t(`personalities.${id}.name`) || p.name,
+    tagline: t(`personalities.${id}.tagline`) || p.tagline,
+    description: t(`personalities.${id}.description`) || p.description,
+    vibe: t(`personalities.${id}.vibe`) || p.vibe,
+  };
+}
+
 export default function PersonalityCard({ personality, stats, topCategories, indices }) {
+  const { t } = useT();
   if (!personality) return null;
+  const p = localize(t, personality);
 
   return (
     <div
       className={`
         relative overflow-hidden rounded-3xl p-8 md:p-10
-        bg-gradient-to-br ${personality.gradient}
+        bg-gradient-to-br ${p.gradient}
         animate-pulse-glow animate-fade-up
       `}
     >
@@ -40,29 +57,29 @@ export default function PersonalityCard({ personality, stats, topCategories, ind
       <div className="relative z-10 flex flex-col items-center text-center gap-4">
         <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/20 backdrop-blur text-xs font-medium text-white/90">
           <Sparkles className="w-3.5 h-3.5" />
-          당신의 YouTube 취향 유형
+          {t('personality.yourType')}
         </div>
 
         <div className="text-7xl md:text-8xl leading-none drop-shadow-lg">
-          {personality.emoji}
+          {p.emoji}
         </div>
 
         <h2 className="text-3xl md:text-5xl font-bold text-white drop-shadow">
-          {personality.name}
+          {p.name}
         </h2>
 
-        {personality.vibe && (
+        {p.vibe && (
           <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-black/30 backdrop-blur text-xs font-semibold text-white tracking-wide">
-            #{personality.vibe}
+            #{p.vibe}
           </div>
         )}
 
         <p className="text-lg md:text-xl text-white/90 font-medium italic max-w-xl">
-          "{personality.tagline}"
+          "{p.tagline}"
         </p>
 
         <p className="text-sm md:text-base text-white/80 max-w-lg">
-          {personality.description}
+          {p.description}
         </p>
 
         {topCategories && topCategories.length > 0 && (
@@ -72,7 +89,7 @@ export default function PersonalityCard({ personality, stats, topCategories, ind
                 key={c.id}
                 className="px-3 py-1 rounded-full bg-black/25 backdrop-blur text-xs text-white/95"
               >
-                {c.emoji} {c.label} {Math.round(c.ratio * 100)}%
+                {c.emoji} {t(`categories.${c.id}`) || c.label} {Math.round(c.ratio * 100)}%
               </span>
             ))}
           </div>
@@ -94,57 +111,67 @@ export default function PersonalityCard({ personality, stats, topCategories, ind
 
         {stats && (
           <div className="grid grid-cols-3 gap-6 mt-4 w-full max-w-md">
-            <Stat value={stats.total.toLocaleString()} label="총 시청" />
-            <Stat value={stats.avgPerDay.toFixed(1)} label="하루 평균" />
-            <Stat value={stats.uniqueChannels.toLocaleString()} label="본 채널" />
+            <Stat value={stats.total.toLocaleString()} label={t('personality.stats.total')} />
+            <Stat value={stats.avgPerDay.toFixed(1)} label={t('personality.stats.avg')} />
+            <Stat value={stats.uniqueChannels.toLocaleString()} label={t('personality.stats.channels')} />
           </div>
         )}
 
         {stats && stats.shortsCount > 0 && (
           <div className="text-xs text-white/75 mt-1">
-            이 중 #shorts 태그 확인된 쇼츠: {stats.shortsCount.toLocaleString()}편
+            {t('personality.shortsFound', { n: stats.shortsCount.toLocaleString() })}
           </div>
         )}
       </div>
 
       {/* Runner-ups — "나와 가까운 유형 Top 3" */}
-      {personality.runnerUps && personality.runnerUps.length > 0 && (
+      {p.runnerUps && p.runnerUps.length > 0 && (
         <div className="relative z-10 mt-6">
           <div className="flex items-center justify-between mb-2 px-1">
             <span className="text-xs font-semibold text-white/85 tracking-wide">
-              나와 가까운 다른 유형
+              {t('personality.runnerUpsTitle')}
             </span>
             <span className="text-[10px] text-white/60">
-              전체 {RUNNER_TOTAL}유형 중
+              {t('personality.runnerTotal', { n: RUNNER_TOTAL })}
             </span>
           </div>
           <div className="grid grid-cols-3 gap-2">
-            {personality.runnerUps.slice(0, 3).map((t, i) => (
-              <RunnerCard key={t.id} rank={i + 2} type={t} />
+            {p.runnerUps.slice(0, 3).map((ru, i) => (
+              <RunnerCard key={ru.id} rank={i + 2} type={localize(t, ru)} t={t} />
             ))}
           </div>
         </div>
       )}
 
       {/* Compatibility — best/worst match. Strong viral hook: "내 친구랑 궁합은?" */}
-      {(personality.bestMatch || personality.worstMatch) && (
-        <CompatibilityBlock personality={personality} />
+      {(p.bestMatch || p.worstMatch) && (
+        <CompatibilityBlock personality={p} t={t} />
       )}
     </div>
   );
 }
 
-function CompatibilityBlock({ personality }) {
-  const best = PERSONALITIES[personality.bestMatch];
-  const worst = PERSONALITIES[personality.worstMatch];
+function CompatibilityBlock({ personality, t }) {
+  const bestRaw = PERSONALITIES[personality.bestMatch];
+  const worstRaw = PERSONALITIES[personality.worstMatch];
+  const best = bestRaw && {
+    ...bestRaw,
+    name: t(`personalities.${bestRaw.id}.name`) || bestRaw.name,
+    tagline: t(`personalities.${bestRaw.id}.tagline`) || bestRaw.tagline,
+  };
+  const worst = worstRaw && {
+    ...worstRaw,
+    name: t(`personalities.${worstRaw.id}.name`) || worstRaw.name,
+    tagline: t(`personalities.${worstRaw.id}.tagline`) || worstRaw.tagline,
+  };
   return (
     <div className="relative z-10 mt-6 rounded-2xl bg-black/35 backdrop-blur border border-white/10 p-4">
       <div className="flex items-center justify-between mb-3">
         <span className="text-xs font-semibold text-white/90 tracking-wide inline-flex items-center gap-1.5">
           <HeartHandshake className="w-4 h-4" />
-          유형 궁합표
+          {t('personality.compatibility.title')}
         </span>
-        <span className="text-[10px] text-white/60">친구랑 비교해봐요</span>
+        <span className="text-[10px] text-white/60">{t('personality.compatibility.compareWithFriend')}</span>
       </div>
 
       <div className="grid grid-cols-2 gap-3">
@@ -152,7 +179,7 @@ function CompatibilityBlock({ personality }) {
           <div className="rounded-xl bg-emerald-500/15 border border-emerald-400/30 p-3">
             <div className="flex items-center gap-1.5 text-[10px] text-emerald-200 font-semibold mb-1.5">
               <HeartHandshake className="w-3 h-3" />
-              찰떡 궁합
+              {t('personality.compatibility.best')}
             </div>
             <div className="flex items-center gap-2">
               <div className="text-3xl drop-shadow">{best.emoji}</div>
@@ -169,7 +196,7 @@ function CompatibilityBlock({ personality }) {
           <div className="rounded-xl bg-red-500/15 border border-red-400/30 p-3">
             <div className="flex items-center gap-1.5 text-[10px] text-red-200 font-semibold mb-1.5">
               <Swords className="w-3 h-3" />
-              상극 궁합
+              {t('personality.compatibility.worst')}
             </div>
             <div className="flex items-center gap-2">
               <div className="text-3xl drop-shadow">{worst.emoji}</div>
@@ -186,7 +213,7 @@ function CompatibilityBlock({ personality }) {
 
       <div className="mt-3 flex items-center justify-center gap-1.5 text-[11px] text-white/80 bg-white/10 rounded-xl py-2">
         <Share2 className="w-3.5 h-3.5" />
-        <span>친구에게 "너도 해봐" 링크 보내서 궁합 확인해보세요</span>
+        <span>{t('personality.compatibility.sharePrompt')}</span>
       </div>
     </div>
   );
@@ -194,7 +221,7 @@ function CompatibilityBlock({ personality }) {
 
 const RUNNER_TOTAL = 22;
 
-function RunnerCard({ rank, type }) {
+function RunnerCard({ rank, type, t }) {
   return (
     <div
       className="relative rounded-2xl p-3 bg-black/30 backdrop-blur border border-white/10 hover:bg-black/40 transition overflow-hidden"
@@ -206,10 +233,10 @@ function RunnerCard({ rank, type }) {
       <div className="pl-2">
         <div className="flex items-start justify-between">
           <div className="text-[10px] text-white/60 font-semibold">
-            {rank}순위
+            {t ? t('personality.runnerRank', { n: rank }) : `${rank}`}
           </div>
           <div className="text-[10px] text-white/50 tabular-nums">
-            {type.score}pt
+            {t ? t('personality.runnerScore', { n: type.score }) : `${type.score}pt`}
           </div>
         </div>
         <div className="text-3xl leading-none mt-1 drop-shadow">{type.emoji}</div>

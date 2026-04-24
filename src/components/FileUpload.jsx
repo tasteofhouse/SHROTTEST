@@ -9,6 +9,7 @@ import {
   parseWatchHistoryHTML,
   parseWatchHistoryAuto,
 } from '../utils/parseHistory';
+import { useT } from '../i18n/index.jsx';
 
 // --- Lightweight mobile UA detection (heuristic only — no server round-trip) ---
 function detectIsMobile() {
@@ -18,6 +19,7 @@ function detectIsMobile() {
 }
 
 export default function FileUpload({ onParsed, onBack }) {
+  const { t } = useT();
   const [dragOver, setDragOver] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -37,7 +39,7 @@ export default function FileUpload({ onParsed, onBack }) {
     async (raw, sourceLabel = 'paste', filenameHint = '') => {
       setError(null);
       setLoading(true);
-      setProgress('시청 기록 파싱 중...');
+      setProgress(t('upload.progress.parsing'));
       try {
         await new Promise((r) => setTimeout(r, 20));
         let views;
@@ -47,23 +49,21 @@ export default function FileUpload({ onParsed, onBack }) {
           views = parseWatchHistory(raw);
         }
         if (views.length === 0) {
-          setError(
-            'YouTube 시청 기록이 없어요. watch-history (JSON 또는 HTML) 맞는지 확인해주세요.'
-          );
+          setError(t('upload.errors.noHistory'));
           setLoading(false);
           return;
         }
-        setProgress('분석 준비 중...');
+        setProgress(t('upload.progress.ready'));
         await new Promise((r) => setTimeout(r, 40));
         onParsed(views);
       } catch (err) {
-        setError(err.message || '알 수 없는 오류가 발생했어요.');
+        setError(err.message || t('upload.errors.unknown'));
         setLoading(false);
       } finally {
         setProgress('');
       }
     },
-    [onParsed]
+    [onParsed, t]
   );
 
   const handleFile = useCallback(
@@ -74,16 +74,16 @@ export default function FileUpload({ onParsed, onBack }) {
       const nameOk = /\.(json|html?|txt)$/i.test(file.name);
       const mimeOk = !file.type || /json|text|octet|html/i.test(file.type);
       if (!nameOk && !mimeOk) {
-        setError('JSON 또는 HTML 파일만 업로드할 수 있어요.');
+        setError(t('upload.errors.invalidType'));
         return;
       }
       if (file.size > 500 * 1024 * 1024) {
-        setError('파일 크기가 너무 커요. 500MB 이하만 지원해요.');
+        setError(t('upload.errors.tooLarge'));
         return;
       }
       setError(null);
       setLoading(true);
-      setProgress('파일 읽는 중...');
+      setProgress(t('upload.progress.reading'));
       try {
         const isHTML = /\.html?$/i.test(file.name) || /html/i.test(file.type || '');
         if (isHTML) {
@@ -95,33 +95,33 @@ export default function FileUpload({ onParsed, onBack }) {
           await processRaw(text, 'file', file.name);
         }
       } catch (err) {
-        setError(err.message || '알 수 없는 오류가 발생했어요.');
+        setError(err.message || t('upload.errors.unknown'));
         setLoading(false);
         setProgress('');
       }
     },
-    [processRaw]
+    [processRaw, t]
   );
 
   const handlePaste = useCallback(async () => {
     if (!pasteText.trim()) {
-      setError('붙여넣을 내용이 비어 있어요.');
+      setError(t('upload.errors.empty'));
       return;
     }
     // Auto-detect JSON vs HTML — user might paste either one.
     await processRaw(pasteText, 'paste');
-  }, [pasteText, processRaw]);
+  }, [pasteText, processRaw, t]);
 
   const handleClipboard = useCallback(async () => {
     try {
       if (!navigator.clipboard?.readText) {
-        setError('이 브라우저는 클립보드 읽기를 지원하지 않아요. 아래 창에 직접 붙여넣어 주세요.');
+        setError(t('upload.errors.clipboardUnsupported'));
         setShowPaste(true);
         return;
       }
       const text = await navigator.clipboard.readText();
       if (!text || text.length < 10) {
-        setError('클립보드가 비어있어요.');
+        setError(t('upload.errors.clipboardEmpty'));
         return;
       }
       setPasteText(text);
@@ -129,9 +129,9 @@ export default function FileUpload({ onParsed, onBack }) {
       // Auto-process — handles both JSON and HTML via sniffing.
       await processRaw(text, 'clipboard');
     } catch (e) {
-      setError('클립보드 접근 권한을 허용해주세요: ' + (e.message || ''));
+      setError(t('upload.errors.clipboardDenied', { msg: e.message || '' }));
     }
-  }, [processRaw]);
+  }, [processRaw, t]);
 
   const onDrop = (e) => {
     e.preventDefault();
@@ -148,13 +148,13 @@ export default function FileUpload({ onParsed, onBack }) {
           className="flex items-center gap-2 text-sm text-zinc-400 hover:text-zinc-200 transition"
         >
           <ArrowLeft className="w-4 h-4" />
-          돌아가기
+          {t('common.back')}
         </button>
 
         <div>
-          <h2 className="text-2xl font-bold text-zinc-100">시청 기록 업로드</h2>
+          <h2 className="text-2xl font-bold text-zinc-100">{t('upload.title')}</h2>
           <p className="text-zinc-400 text-sm mt-1">
-            Google Takeout에서 받은 JSON 또는 HTML 파일을 올려주세요.
+            {t('upload.subtitle')}
           </p>
         </div>
 
@@ -166,11 +166,10 @@ export default function FileUpload({ onParsed, onBack }) {
           </div>
           <div className="flex-1">
             <p className="text-sm font-bold text-emerald-300">
-              서버 전송 절대 없음 · 의심스러우면 비행기 모드 켜고 테스트하세요
+              {t('upload.airplane.title')}
             </p>
             <p className="text-xs text-emerald-400/80 leading-relaxed mt-1">
-              Wi-Fi / 셀룰러를 꺼도 분석이 정상 동작합니다. 네트워크 탭을 열어도
-              업로드 요청은 나가지 않아요. 파일은 메모리에서 즉시 증발.
+              {t('upload.airplane.body')}
             </p>
           </div>
         </div>
@@ -211,14 +210,14 @@ export default function FileUpload({ onParsed, onBack }) {
             )}
             <div>
               <h3 className="text-xl md:text-2xl font-semibold text-zinc-100 mb-2">
-                {loading ? progress || '읽는 중...' : '시청 기록 HTML 또는 JSON 파일을 올려주세요'}
+                {loading ? progress || t('common.loading') : t('upload.dropzone.heading')}
               </h3>
               <p className="text-zinc-400 text-sm">
                 {loading
-                  ? '잠시만 기다려주세요. 수십만 건도 문제없어요.'
+                  ? t('upload.dropzone.loading')
                   : isMobile
-                  ? '아래 버튼을 눌러 파일을 선택하거나, 내용을 붙여넣으세요.'
-                  : '드래그 앤 드롭하거나 아래 버튼을 눌러 업로드 (HTML · JSON 둘 다 OK)'}
+                  ? t('upload.dropzone.hintMobile')
+                  : t('upload.dropzone.hintDesktop')}
               </p>
             </div>
 
@@ -231,7 +230,7 @@ export default function FileUpload({ onParsed, onBack }) {
                   className="inline-flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-grad-yt text-white font-semibold shadow-glow hover:opacity-90 transition"
                 >
                   <FolderOpen className="w-4 h-4" />
-                  파일 선택 (HTML · JSON)
+                  {t('upload.dropzone.btnPrimary')}
                 </button>
 
                 {/* Mobile fallback: all-file picker (iOS Safari sometimes hides .json) */}
@@ -242,7 +241,7 @@ export default function FileUpload({ onParsed, onBack }) {
                     className="inline-flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl bg-bg-elevated border border-zinc-700 text-zinc-200 text-sm hover:bg-zinc-800 transition"
                   >
                     <Smartphone className="w-3.5 h-3.5" />
-                    모바일: 모든 파일에서 선택
+                    {t('upload.dropzone.btnMobileFallback')}
                   </button>
                 )}
 
@@ -254,7 +253,7 @@ export default function FileUpload({ onParsed, onBack }) {
                     className="inline-flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-xl bg-bg-elevated border border-zinc-700 text-zinc-200 text-xs hover:bg-zinc-800 transition"
                   >
                     <ClipboardPaste className="w-3.5 h-3.5" />
-                    클립보드 붙여넣기
+                    {t('upload.dropzone.btnClipboard')}
                   </button>
                   <button
                     type="button"
@@ -262,7 +261,7 @@ export default function FileUpload({ onParsed, onBack }) {
                     className="inline-flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-xl bg-bg-elevated border border-zinc-700 text-zinc-200 text-xs hover:bg-zinc-800 transition"
                   >
                     <FileJson className="w-3.5 h-3.5" />
-                    {showPaste ? '붙여넣기 닫기' : '직접 붙여넣기 (HTML·JSON)'}
+                    {showPaste ? t('upload.dropzone.btnPasteClose') : t('upload.dropzone.btnPasteOpen')}
                   </button>
                 </div>
               </div>
@@ -271,7 +270,7 @@ export default function FileUpload({ onParsed, onBack }) {
             {!loading && (
               <div className="flex items-center gap-2 text-xs text-zinc-500 mt-1">
                 <FileJson className="w-4 h-4" />
-                <span>watch-history.html / .json (기본 HTML 그대로도 OK)</span>
+                <span>{t('upload.dropzone.formatHint')}</span>
               </div>
             )}
           </div>
@@ -281,20 +280,20 @@ export default function FileUpload({ onParsed, onBack }) {
         {showPaste && !loading && (
           <div className="rounded-2xl bg-bg-card border border-zinc-800 p-4 space-y-3">
             <div className="flex items-center justify-between">
-              <div className="text-sm text-zinc-200 font-semibold">직접 붙여넣기 (HTML · JSON)</div>
-              <span className="text-[10px] text-zinc-500">모바일에서 파일 선택이 안될 때</span>
+              <div className="text-sm text-zinc-200 font-semibold">{t('upload.paste.title')}</div>
+              <span className="text-[10px] text-zinc-500">{t('upload.paste.hint')}</span>
             </div>
             <textarea
               value={pasteText}
               onChange={(e) => setPasteText(e.target.value)}
-              placeholder='<!-- HTML 전체 복사 -->  또는  [ { "header": "YouTube", "title": "...", ... }, ... ]'
+              placeholder={t('upload.paste.placeholder')}
               className="w-full h-40 rounded-xl bg-bg border border-zinc-800 p-3 text-xs text-zinc-200 font-mono resize-y"
             />
             <button
               onClick={handlePaste}
               className="w-full py-2.5 rounded-xl bg-grad-yt text-white text-sm font-semibold hover:opacity-90 transition"
             >
-              업로드
+              {t('upload.paste.submit')}
             </button>
           </div>
         )}
@@ -306,19 +305,19 @@ export default function FileUpload({ onParsed, onBack }) {
             className="flex items-center gap-1.5 text-xs text-zinc-400 hover:text-zinc-200 transition"
           >
             <HelpCircle className="w-4 h-4" />
-            {showHelp ? '도움말 닫기' : '파일을 못 찾겠어요'}
+            {showHelp ? t('upload.help.close') : t('upload.help.open')}
           </button>
         )}
 
         {showHelp && (
           <div className="rounded-2xl bg-bg-card border border-zinc-800 p-4 text-xs text-zinc-300 leading-relaxed space-y-2">
-            <p className="font-semibold text-zinc-100">모바일에서 업로드가 안 되시나요?</p>
+            <p className="font-semibold text-zinc-100">{t('upload.help.title')}</p>
             <ol className="list-decimal pl-4 space-y-1">
-              <li>Takeout 압축파일(.zip)을 먼저 풀어주세요 — iOS는 "파일 앱 → 길게 눌러 압축 해제".</li>
-              <li>압축을 풀면 <code className="text-yt-pink">Takeout/YouTube/시청기록/시청 기록.html</code> 또는 <code className="text-yt-pink">.json</code> 경로에 있어요 (기본 설정은 .html).</li>
-              <li>파일 선택이 안 보이면 "모든 파일에서 선택"으로 .html 또는 .json을 직접 고르세요.</li>
-              <li>여전히 안 되면 JSON 내용을 복사해서 "직접 붙여넣기"에 넣어도 돼요.</li>
-              <li>데스크톱 크롬/사파리가 가장 안정적이에요 — 모바일에서 실패하면 PC를 권장드려요.</li>
+              <li>{t('upload.help.step1')}</li>
+              <li>{t('upload.help.step2')}</li>
+              <li>{t('upload.help.step3')}</li>
+              <li>{t('upload.help.step4')}</li>
+              <li>{t('upload.help.step5')}</li>
             </ol>
           </div>
         )}
@@ -332,7 +331,7 @@ export default function FileUpload({ onParsed, onBack }) {
 
         <div className="flex items-center justify-center gap-2 text-xs text-zinc-500">
           <Shield className="w-4 h-4 text-emerald-400" />
-          <span>모든 분석은 내 브라우저에서만 처리됩니다. 파일은 서버로 전송되지 않아요.</span>
+          <span>{t('upload.footer')}</span>
         </div>
       </div>
     </div>
