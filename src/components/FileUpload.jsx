@@ -211,14 +211,14 @@ export default function FileUpload({ onParsed, onBack }) {
             )}
             <div>
               <h3 className="text-xl md:text-2xl font-semibold text-zinc-100 mb-2">
-                {loading ? progress || '읽는 중...' : '시청 기록 JSON 파일을 올려주세요'}
+                {loading ? progress || '읽는 중...' : '시청 기록 HTML 또는 JSON 파일을 올려주세요'}
               </h3>
               <p className="text-zinc-400 text-sm">
                 {loading
                   ? '잠시만 기다려주세요. 수십만 건도 문제없어요.'
                   : isMobile
-                  ? '아래 버튼을 눌러 파일을 선택하거나, JSON을 붙여넣으세요.'
-                  : '드래그 앤 드롭하거나 아래 버튼을 눌러 업로드'}
+                  ? '아래 버튼을 눌러 파일을 선택하거나, 내용을 붙여넣으세요.'
+                  : '드래그 앤 드롭하거나 아래 버튼을 눌러 업로드 (HTML · JSON 둘 다 OK)'}
               </p>
             </div>
 
@@ -231,7 +231,7 @@ export default function FileUpload({ onParsed, onBack }) {
                   className="inline-flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-grad-yt text-white font-semibold shadow-glow hover:opacity-90 transition"
                 >
                   <FolderOpen className="w-4 h-4" />
-                  파일 선택 (JSON)
+                  파일 선택 (HTML · JSON)
                 </button>
 
                 {/* Mobile fallback: all-file picker (iOS Safari sometimes hides .json) */}
@@ -262,7 +262,7 @@ export default function FileUpload({ onParsed, onBack }) {
                     className="inline-flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-xl bg-bg-elevated border border-zinc-700 text-zinc-200 text-xs hover:bg-zinc-800 transition"
                   >
                     <FileJson className="w-3.5 h-3.5" />
-                    {showPaste ? '붙여넣기 닫기' : 'JSON 직접 붙여넣기'}
+                    {showPaste ? '붙여넣기 닫기' : '직접 붙여넣기 (HTML·JSON)'}
                   </button>
                 </div>
               </div>
@@ -281,13 +281,13 @@ export default function FileUpload({ onParsed, onBack }) {
         {showPaste && !loading && (
           <div className="rounded-2xl bg-bg-card border border-zinc-800 p-4 space-y-3">
             <div className="flex items-center justify-between">
-              <div className="text-sm text-zinc-200 font-semibold">JSON 직접 붙여넣기</div>
+              <div className="text-sm text-zinc-200 font-semibold">직접 붙여넣기 (HTML · JSON)</div>
               <span className="text-[10px] text-zinc-500">모바일에서 파일 선택이 안될 때</span>
             </div>
             <textarea
               value={pasteText}
               onChange={(e) => setPasteText(e.target.value)}
-              placeholder='[ { "header": "YouTube", "title": "...", ... }, ... ]'
+              placeholder='<!-- HTML 전체 복사 -->  또는  [ { "header": "YouTube", "title": "...", ... }, ... ]'
               className="w-full h-40 rounded-xl bg-bg border border-zinc-800 p-3 text-xs text-zinc-200 font-mono resize-y"
             />
             <button
@@ -315,8 +315,8 @@ export default function FileUpload({ onParsed, onBack }) {
             <p className="font-semibold text-zinc-100">모바일에서 업로드가 안 되시나요?</p>
             <ol className="list-decimal pl-4 space-y-1">
               <li>Takeout 압축파일(.zip)을 먼저 풀어주세요 — iOS는 "파일 앱 → 길게 눌러 압축 해제".</li>
-              <li>압축을 풀면 <code className="text-yt-pink">Takeout/YouTube/시청기록/시청 기록.json</code> 경로에 있어요.</li>
-              <li>파일 선택이 안 보이면 "모든 파일에서 선택"으로 .json을 직접 고르세요.</li>
+              <li>압축을 풀면 <code className="text-yt-pink">Takeout/YouTube/시청기록/시청 기록.html</code> 또는 <code className="text-yt-pink">.json</code> 경로에 있어요 (기본 설정은 .html).</li>
+              <li>파일 선택이 안 보이면 "모든 파일에서 선택"으로 .html 또는 .json을 직접 고르세요.</li>
               <li>여전히 안 되면 JSON 내용을 복사해서 "직접 붙여넣기"에 넣어도 돼요.</li>
               <li>데스크톱 크롬/사파리가 가장 안정적이에요 — 모바일에서 실패하면 PC를 권장드려요.</li>
             </ol>

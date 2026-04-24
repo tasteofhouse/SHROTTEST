@@ -111,14 +111,17 @@ export function isLikelyShort(entry) {
 function cleanTitle(rawTitle) {
   if (!rawTitle) return '';
   let t = rawTitle;
-  // Korean Takeout format: "제목 을(를) 시청했습니다."
-  t = t.replace(/\s+을\(를\)\s*시청했습니다\.?\s*$/, '');
-  // English: "Watched 제목"
-  t = t.replace(/^Watched\s+/i, '');
-  // Other Korean variant
-  t = t.replace(/^시청함\s+/, '');
+  // Korean Takeout JSON format: "제목 을(를) 시청했습니다."
+  t = t.replace(/\s*을\(를\)\s*시청했습니다\.?\s*$/, '');
+  // Korean HTML variant emitted before the anchor: rare
+  t = t.replace(/^시청함\s*/, '');
+  // English JSON format: "Watched 제목". Use \s* so HTML-reconstructed
+  // titles without a separator ("Watched제목") also strip cleanly.
+  t = t.replace(/^Watched\s*/i, '');
   // YouTube Music: "Listened to 제목"
-  t = t.replace(/^Listened to\s+/i, '');
+  t = t.replace(/^Listened\s*to\s*/i, '');
+  // Korean Music: "들었음 제목" / "재생함 제목"
+  t = t.replace(/^(들었음|재생함)\s*/, '');
   return t.trim();
 }
 
@@ -291,7 +294,7 @@ function buildEntryFromCell(cell) {
   // shared `isAdEntry` predicate catches HTML ads too.
   const details = cellMentionsAd(cellText) ? [{ name: 'From Google Ads' }] : undefined;
 
-  // last non-empty line
+  // last non-empty line (timestamp sits at the bottom of the cell)
   const lines = cellText
     .split('\n')
     .map((s) => s.trim())
@@ -299,35 +302,59 @@ function buildEntryFromCell(cell) {
   const timeText = lines[lines.length - 1] || '';
   const parsedTime = parseTakeoutDate(timeText);
 
+  // Detect YouTube Music at the HTML layer — URLs on music.youtube.com and
+  // cells prefixed with "Listened to" are music listens, not regular watches.
+  const isMusicUrl = /music\.youtube\.com/i.test(titleUrl);
+  const isMusicPrefix = /^(Listened to|들었음|재생함)/i.test(prefix);
+  const header = isMusicUrl || isMusicPrefix ? 'YouTube Music' : 'YouTube';
+  const products = isMusicUrl || isMusicPrefix ? ['YouTube Music'] : ['YouTube'];
+
   return {
-    header: 'YouTube',
+    header,
     title: rawTitle,
     titleUrl,
     subtitles,
     details,
+    products,
     time: parsedTime ? parsedTime.toISOString() : null,
-    // We can't easily recover `products` from HTML, but leaving it undefined
-    // is fine — isYouTubeView already treats header === 'YouTube' as enough.
   };
 }
 
-// Takeout HTML uses locale-formatted dates. JS Date can parse most English
-// variants directly, but Korean long-form needs help.
+// Takeout HTML uses locale-formatted dates. JS Date parses English variants
+// inconsistently — Chrome handles "KST" but Firefox and older engines fail
+// on trailing timezone abbreviations. We strip those before trying native
+// parse, then fall back to manual regex for both Korean and English forms.
+const ENG_MONTHS = {
+  jan: 0, feb: 1, mar: 2, apr: 3, may: 4, jun: 5,
+  jul: 6, aug: 7, sep: 8, sept: 8, oct: 9, nov: 10, dec: 11,
+};
+
 function parseTakeoutDate(raw) {
   if (!raw) return null;
-  // Fast path — English "Mar 14, 2024, 9:12:34 PM KST"
-  const direct = new Date(raw);
-  if (!isNaN(direct.getTime())) return direct;
-  // Korean "2024. 3. 14. 오후 9:12:34 GMT+9"
-  const m = raw.match(
+
+  // Strip trailing timezone tokens that break Date parsing in some engines:
+  //   "... GMT+9"          (Korean Takeout)
+  //   "... KST" / "... PDT" (English Takeout, 2–5 uppercase letters at end)
+  const stripped = raw
+    .replace(/\s+GMT[+-]\d{1,2}(?::?\d{2})?$/i, '')
+    .replace(/\s+[A-Z]{2,5}$/, '')
+    .trim();
+
+  // Fast path — try native parse on both original and stripped strings.
+  for (const s of [raw, stripped]) {
+    const d = new Date(s);
+    if (!isNaN(d.getTime())) return d;
+  }
+
+  // Korean: "2024. 3. 14. 오후 9:12:34"
+  const km = stripped.match(
     /(\d{4})\.\s*(\d{1,2})\.\s*(\d{1,2})\.?\s*(오전|오후)?\s*(\d{1,2}):(\d{2}):(\d{2})/
   );
-  if (m) {
-    const [, y, mo, d, ampm, hh, mm, ss] = m;
+  if (km) {
+    const [, y, mo, d, ampm, hh, mm, ss] = km;
     let hour = parseInt(hh, 10);
     if (ampm === '오후' && hour < 12) hour += 12;
     if (ampm === '오전' && hour === 12) hour = 0;
-    // Assume local tz if parsing fails — good enough for histograms.
     const d2 = new Date(
       parseInt(y, 10),
       parseInt(mo, 10) - 1,
@@ -338,6 +365,30 @@ function parseTakeoutDate(raw) {
     );
     return isNaN(d2.getTime()) ? null : d2;
   }
+
+  // English: "Mar 14, 2024, 9:12:34 AM" (with optional comma variants)
+  const em = stripped.match(
+    /([A-Za-z]+)\s+(\d{1,2}),?\s+(\d{4}),?\s+(\d{1,2}):(\d{2})(?::(\d{2}))?\s*(AM|PM)?/i
+  );
+  if (em) {
+    const [, monStr, day, year, hh, mm, ss, ampm] = em;
+    const key = monStr.toLowerCase().slice(0, 4);
+    const mon = ENG_MONTHS[key] ?? ENG_MONTHS[key.slice(0, 3)];
+    if (mon == null) return null;
+    let hour = parseInt(hh, 10);
+    if (/pm/i.test(ampm || '') && hour < 12) hour += 12;
+    if (/am/i.test(ampm || '') && hour === 12) hour = 0;
+    const d2 = new Date(
+      parseInt(year, 10),
+      mon,
+      parseInt(day, 10),
+      hour,
+      parseInt(mm, 10),
+      parseInt(ss || '0', 10)
+    );
+    return isNaN(d2.getTime()) ? null : d2;
+  }
+
   return null;
 }
 
@@ -360,20 +411,37 @@ export function parseWatchHistoryHTML(htmlText) {
 
   const views = [];
   let skipped = 0;
+  let dropUndated = 0;
+  let dropNotYt = 0;
   for (const cell of cells) {
     // The "right" content-cell holds Products metadata, not watches.
     if (cell.classList.contains('mdl-typography--text-right')) continue;
     const pseudo = buildEntryFromCell(cell);
     if (!pseudo) continue;
-    if (!isYouTubeView(pseudo)) continue;
+    if (!isYouTubeView(pseudo)) { dropNotYt++; continue; }
     if (isAdEntry(pseudo)) { skipped++; continue; }
     if (isUnavailableEntry(pseudo)) { skipped++; continue; }
     const n = normalizeEntry(pseudo);
     if (n.time && !isNaN(n.time.getTime())) views.push(n);
+    else dropUndated++;
   }
   views.sort((a, b) => b.time - a.time);
+
+  // If we parsed many cells but ended up with zero views, surface a specific
+  // error so the user knows whether it's a format mismatch vs a date-parse issue.
+  if (views.length === 0 && cells.length > 10) {
+    throw new Error(
+      `HTML을 읽었지만 유효한 시청 기록이 없어요 (cells=${cells.length}, 비-YouTube=${dropNotYt}, 광고/삭제=${skipped}, 날짜파싱실패=${dropUndated}). ` +
+      `watch-history.html이 맞는지, 또는 Takeout을 영어 이외 다른 언어로 내보낸 게 아닌지 확인해주세요.`
+    );
+  }
+
   Object.defineProperty(views, 'skippedUnavailable', {
     value: skipped,
+    enumerable: false,
+  });
+  Object.defineProperty(views, 'debugStats', {
+    value: { cells: cells.length, dropNotYt, dropUndated, skipped },
     enumerable: false,
   });
   return views;
