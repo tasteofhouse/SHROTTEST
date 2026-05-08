@@ -335,22 +335,22 @@ export default function LandingPage({ onStart, onTrySample }) {
           {[
             {
               icon: Shield,
-              title: '완전한 프라이버시',
-              desc: '파일이 어디에도 업로드되지 않아요. 내 브라우저에서만 분석해요.',
+              title: t('landing.features.privacy.title'),
+              desc: t('landing.features.privacy.desc'),
               color: 'text-emerald-400',
               bg: 'bg-emerald-400/10',
             },
             {
               icon: Zap,
-              title: '빠른 분석',
-              desc: '수십만 건의 시청 기록도 순식간에 분석해드려요.',
+              title: t('landing.features.speed.title'),
+              desc: t('landing.features.speed.desc'),
               color: 'text-yellow-400',
               bg: 'bg-yellow-400/10',
             },
             {
               icon: BarChart2,
-              title: '풍부한 인사이트',
-              desc: '취향 유형, 시간대, Top 채널, 카테고리, 변화 추이까지 한눈에.',
+              title: t('landing.features.insight.title'),
+              desc: t('landing.features.insight.desc'),
               color: 'text-blue-400',
               bg: 'bg-blue-400/10',
             },
@@ -377,10 +377,10 @@ export default function LandingPage({ onStart, onTrySample }) {
             <div className="flex items-center gap-2 text-left">
               <span className="text-base">📁</span>
               <span className="text-sm font-semibold text-zinc-200">
-                시청 기록 파일 받는 방법 — 이미지로 보는 단계별 안내
+                {t('landing.guide.headerTitle')}
               </span>
               <span className="hidden sm:inline text-xs px-2 py-0.5 rounded-full bg-yt-orange/20 text-yt-orange font-medium">
-                5분 소요
+                {t('landing.guide.headerBadge')}
               </span>
             </div>
             {guideOpen ? (
@@ -393,8 +393,7 @@ export default function LandingPage({ onStart, onTrySample }) {
           {guideOpen && (
             <div className="px-5 pb-5 space-y-5 border-t border-zinc-800">
               <p className="text-xs text-zinc-500 pt-4">
-                Google Takeout은 구글 계정에 저장된 내 데이터를 내려받는 공식 서비스예요.
-                첫 단계 링크는 <strong className="text-zinc-300">YouTube가 이미 선택된 상태</strong>로 열리니 그대로 따라오시면 돼요.
+                {t('landing.guide.intro')}
               </p>
 
               {GUIDE_STEPS.map((step, i) => {
@@ -462,7 +461,7 @@ export default function LandingPage({ onStart, onTrySample }) {
               })}
 
               <div className="mt-4 p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-xs text-emerald-400">
-                ✅ 파일을 받았다면 위의 <strong>"분석 시작하기"</strong> 버튼을 눌러 업로드하면 끝!
+                {t('landing.guide.done')}
               </div>
             </div>
           )}

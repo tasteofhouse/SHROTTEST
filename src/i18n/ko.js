@@ -17,6 +17,9 @@ export default {
   app: {
     title: 'Shorts Insight',
     privacyBadge: 'Privacy-first · 클라이언트사이드',
+    adLabel: '광고',
+    metaTitle: 'Shorts Insight — 내 YouTube 취향 분석',
+    metaDesc: '내 YouTube 시청 취향을 분석해주는 서비스. 모든 분석은 브라우저에서만 처리됩니다.',
   },
 
   landing: {
@@ -51,6 +54,18 @@ export default {
       title: '비행기 모드로 확인하세요',
       body: 'Wi-Fi와 셀룰러를 모두 꺼도 분석이 정상 작동합니다. 파일은 서버로 절대 전송되지 않아요.',
     },
+    features: {
+      privacy: { title: '완전한 프라이버시', desc: '파일이 어디에도 업로드되지 않아요. 내 브라우저에서만 분석해요.' },
+      speed:   { title: '빠른 분석', desc: '수십만 건의 시청 기록도 순식간에 분석해드려요.' },
+      insight: { title: '풍부한 인사이트', desc: '취향 유형, 시간대, Top 채널, 카테고리, 변화 추이까지 한눈에.' },
+    },
+    guide: {
+      headerTitle: '시청 기록 파일 받는 방법 — 이미지로 보는 단계별 안내',
+      headerBadge: '5분 소요',
+      intro: 'Google Takeout은 구글 계정에 저장된 내 데이터를 내려받는 공식 서비스예요. 첫 단계 링크는 YouTube가 이미 선택된 상태로 열리니 그대로 따라오시면 돼요.',
+      done: '✅ 파일을 받았다면 위의 "분석 시작하기" 버튼을 눌러 업로드하면 끝!',
+    },
+    badges: { youtubeOnly: 'YouTube 및 YouTube Music ✓' },
   },
 
   upload: {
@@ -143,6 +158,40 @@ export default {
     },
     reset: '새 파일 업로드',
     resultTab: { viewShareCard: '공유 카드 보기', viewMbti: 'MBTI 카드 보기' },
+    cards: {
+      music: { title: '🎵 YouTube Music 청취 기록', subtitle: '별도 집계 · 아티스트/채널 Top 10' },
+      categoryDist: { title: '카테고리 분포', subtitle: '어떤 영상을 많이 봤나요?' },
+      topChannels: { title: 'Top 채널', subtitle: '가장 자주 본 채널 · 카테고리 자동 분류' },
+      heatmap: { title: '시간대 × 요일 히트맵', subtitle: '언제 YouTube를 가장 많이 보나요?' },
+      trend: { title: '최근 30일 시청량', subtitle: '일별 시청 추이' },
+      guide: { title: '알고리즘 맞춤 가이드', subtitle: '내 시청 카테고리를 기반으로 YouTube 알고리즘을 조정해보세요' },
+      history: { title: '변화 추적', subtitle: '분석 히스토리를 비교해 시청 패턴의 변화를 확인해보세요' },
+      share: { title: '공유 카드 만들기', subtitle: '친구에게 내 YouTube 취향을 자랑해보세요' },
+    },
+    quickStats: {
+      total: '총 시청',
+      avg: '하루 평균',
+      channels: '본 채널 수',
+      peak: '피크 시간',
+      hourSuffix: '시',
+    },
+    sourceSummary: {
+      title: '시청 기록 구성',
+      subtitle: '총 {total}건 · 유형/카테고리 분석은 YouTube({yt}) 기준이에요',
+      video: '일반 영상',
+      shorts: '쇼츠',
+      music: 'YouTube Music',
+      note: '💡 YouTube Music은 음악 청취 채널이라 카테고리 분석에서 제외하고 별도로 보여드려요.',
+    },
+    music: {
+      total: '총 청취',
+      uniqueArtists: '아티스트 수',
+      peakHour: '피크 시간',
+      nightRatio: '새벽 비율',
+      topListHeading: 'Top 10 아티스트 · 채널',
+      countSuffix: '회',
+      artistSuffix: '명',
+    },
   },
 
   personality: {
@@ -216,10 +265,16 @@ export default {
     personality: '시청 유형',
     changed: '변화',
     labels: { total: '총 시청', avg: '하루 평균', channels: '본 채널 수', night: '새벽 시청', topCategory: '최다 카테고리' },
+    suffix: { videos: '편', channels: '개' },
     noChange: '변화없음',
     historyHeading: '전체 히스토리 ({n}회)',
     deleteAll: '전체 삭제',
     confirmClearAll: '모든 분석 히스토리를 삭제할까요?',
+    entry: {
+      totalLine: '총 {n}편',
+      avgLine: '평균 {n}편/일',
+      topLine: '최다: {label} {n}%',
+    },
     diet: {
       title: '알고리즘 다이어트 성적표',
       footer: '※ 목표는 [알고리즘 관리] 탭에서 언제든 변경할 수 있어요.',
@@ -301,6 +356,13 @@ export default {
     drift:   { name: '알고리즘 표류형', tagline: '취향 없음, 영혼은 알고리즘에 맡김', description: '뭐가 떠도 일단 봄. 피드가 곧 인격인 상태. 본인 취향 물으면 "몰라…" 한숨만 쉬는 타입.', vibe: '피드의 난민' },
     addict:  { name: '도파민 중독형', tagline: '"한 번만 더"가 이미 오늘만 200번째', description: '새벽 3시에 새벽 3시에 새벽 3시에… 스크롤 멈출 뇌 스위치 고장남. 병원 가기 전 최후의 경고.', vibe: '알고리즘 러닝머신' },
     shorts:  { name: '쇼츠 네이티브', tagline: '5분 영상은 이제 "장편 영화"로 체감', description: '세로 스크롤로 최적화된 뇌를 가진 신인류. 집중력 평균치는 15초, 그 이상은 스트레스.', vibe: '쇼츠 원주민' },
+  },
+
+  heatmap: {
+    legendLow: '적음',
+    legendHigh: '많음',
+    cellTooltip: '{day}요일 {h}시 — {n}편',
+    weekdays: ['일', '월', '화', '수', '목', '금', '토'],
   },
 
   shared: {

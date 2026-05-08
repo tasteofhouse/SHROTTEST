@@ -12,14 +12,15 @@ import {
 } from 'lucide-react';
 import { loadHistory, clearHistory, deleteEntry } from '../utils/historyStorage';
 import { loadAlgorithmTarget, describeCategory } from './AlgorithmGuide';
+import { useT } from '../i18n/index.jsx';
 
-function Delta({ current, prev, suffix = '', higherIsBetter = true, digits = 0 }) {
+function Delta({ current, prev, suffix = '', higherIsBetter = true, digits = 0, t }) {
   const diff = current - prev;
   if (Math.abs(diff) < 0.01) {
     return (
       <span className="flex items-center gap-0.5 text-xs text-zinc-500">
         <Minus className="w-3 h-3" />
-        변화없음
+        {t ? t('changeTracker.noChange') : '변화없음'}
       </span>
     );
   }
@@ -41,8 +42,11 @@ function Delta({ current, prev, suffix = '', higherIsBetter = true, digits = 0 }
   );
 }
 
-function formatDate(iso) {
-  return new Date(iso).toLocaleDateString('ko-KR', {
+// Locale tag map for date formatting (Intl-friendly).
+const DATE_LOCALES = { ko: 'ko-KR', en: 'en-US', ja: 'ja-JP' };
+
+function formatDate(iso, lang = 'ko') {
+  return new Date(iso).toLocaleDateString(DATE_LOCALES[lang] || 'ko-KR', {
     month: 'short',
     day: 'numeric',
     hour: '2-digit',
@@ -51,10 +55,11 @@ function formatDate(iso) {
 }
 
 export default function ChangeTracker() {
+  const { t, lang } = useT();
   const [history, setHistory] = useState(() => loadHistory());
 
   const handleClear = () => {
-    if (!window.confirm('모든 분석 히스토리를 삭제할까요?')) return;
+    if (!window.confirm(t('changeTracker.confirmClearAll'))) return;
     clearHistory();
     setHistory([]);
   };
@@ -68,9 +73,9 @@ export default function ChangeTracker() {
     return (
       <div className="flex flex-col items-center gap-3 py-12 text-center">
         <History className="w-10 h-10 text-zinc-700" />
-        <p className="text-zinc-400 text-sm">아직 저장된 분석 기록이 없어요.</p>
+        <p className="text-zinc-400 text-sm">{t('changeTracker.empty.title')}</p>
         <p className="text-zinc-600 text-xs">
-          분석을 완료하면 자동으로 여기에 저장됩니다.
+          {t('changeTracker.empty.body')}
         </p>
       </div>
     );
@@ -79,9 +84,9 @@ export default function ChangeTracker() {
   if (history.length === 1) {
     return (
       <div className="space-y-4">
-        <EntryCard entry={history[0]} onDelete={() => handleDelete(history[0].id)} />
+        <EntryCard entry={history[0]} onDelete={() => handleDelete(history[0].id)} t={t} lang={lang} />
         <p className="text-center text-xs text-zinc-600">
-          분석을 한 번 더 하면 변화를 비교할 수 있어요.
+          {t('changeTracker.singleEntry')}
         </p>
       </div>
     );
@@ -89,35 +94,37 @@ export default function ChangeTracker() {
 
   // Compare latest two entries
   const [latest, previous] = history;
+  const videoSfx = t('changeTracker.suffix.videos');
+  const channelSfx = t('changeTracker.suffix.channels');
 
   return (
     <div className="space-y-5">
       {/* Algorithm Diet Report — pinned at top when user has set targets */}
-      <DietReport previous={previous} latest={latest} />
+      <DietReport previous={previous} latest={latest} t={t} />
 
       {/* Comparison card */}
       <div className="rounded-2xl border border-zinc-800 bg-bg-card overflow-hidden">
         <div className="px-5 py-4 border-b border-zinc-800">
-          <h3 className="text-sm font-semibold text-zinc-100">최근 2회 비교</h3>
+          <h3 className="text-sm font-semibold text-zinc-100">{t('changeTracker.compareTitle')}</h3>
           <p className="text-xs text-zinc-500 mt-0.5">
-            {formatDate(previous.date)} → {formatDate(latest.date)}
+            {formatDate(previous.date, lang)} → {formatDate(latest.date, lang)}
           </p>
         </div>
         <div className="p-5 space-y-4">
           {/* Personality change */}
           <div className="flex items-center justify-between">
-            <span className="text-xs text-zinc-500">시청 유형</span>
+            <span className="text-xs text-zinc-500">{t('changeTracker.personality')}</span>
             <div className="flex items-center gap-2 text-sm">
               <span className="text-zinc-500">
-                {previous.personality.emoji} {previous.personality.name}
+                {previous.personality.emoji} {t(`personalities.${previous.personality.id}.name`) || previous.personality.name}
               </span>
               <span className="text-zinc-700">→</span>
               <span className="text-zinc-100 font-medium">
-                {latest.personality.emoji} {latest.personality.name}
+                {latest.personality.emoji} {t(`personalities.${latest.personality.id}.name`) || latest.personality.name}
               </span>
               {latest.personality.id !== previous.personality.id && (
                 <span className="text-xs px-1.5 py-0.5 rounded bg-yt-orange/20 text-yt-orange">
-                  변화
+                  {t('changeTracker.changed')}
                 </span>
               )}
             </div>
@@ -126,29 +133,29 @@ export default function ChangeTracker() {
           {/* Stats comparison */}
           {[
             {
-              label: '총 시청',
+              label: t('changeTracker.labels.total'),
               curr: latest.stats.total,
               prev: previous.stats.total,
-              suffix: '편',
+              suffix: videoSfx,
               higherIsBetter: true,
             },
             {
-              label: '하루 평균',
+              label: t('changeTracker.labels.avg'),
               curr: latest.stats.avgPerDay,
               prev: previous.stats.avgPerDay,
-              suffix: '편',
+              suffix: videoSfx,
               higherIsBetter: false,
               digits: 1,
             },
             {
-              label: '본 채널 수',
+              label: t('changeTracker.labels.channels'),
               curr: latest.stats.uniqueChannels,
               prev: previous.stats.uniqueChannels,
-              suffix: '개',
+              suffix: channelSfx,
               higherIsBetter: true,
             },
             {
-              label: '새벽 시청',
+              label: t('changeTracker.labels.night'),
               curr: Math.round(latest.stats.nightRatio * 100),
               prev: Math.round(previous.stats.nightRatio * 100),
               suffix: '%',
@@ -169,6 +176,7 @@ export default function ChangeTracker() {
                   suffix={suffix}
                   higherIsBetter={higherIsBetter}
                   digits={digits || 0}
+                  t={t}
                 />
               </div>
             </div>
@@ -177,14 +185,14 @@ export default function ChangeTracker() {
           {/* Top category change */}
           {latest.topCategories[0] && previous.topCategories[0] && (
             <div className="flex items-center justify-between">
-              <span className="text-xs text-zinc-500">최다 카테고리</span>
+              <span className="text-xs text-zinc-500">{t('changeTracker.labels.topCategory')}</span>
               <div className="flex items-center gap-2 text-sm">
                 <span className="text-zinc-500">
-                  {previous.topCategories[0].emoji} {previous.topCategories[0].label}
+                  {previous.topCategories[0].emoji} {t(`categories.${previous.topCategories[0].id}`) || previous.topCategories[0].label}
                 </span>
                 <span className="text-zinc-700">→</span>
                 <span className="text-zinc-100 font-medium">
-                  {latest.topCategories[0].emoji} {latest.topCategories[0].label}
+                  {latest.topCategories[0].emoji} {t(`categories.${latest.topCategories[0].id}`) || latest.topCategories[0].label}
                 </span>
               </div>
             </div>
@@ -196,18 +204,18 @@ export default function ChangeTracker() {
       <div className="space-y-3">
         <div className="flex items-center justify-between">
           <h3 className="text-sm font-semibold text-zinc-300">
-            전체 히스토리 ({history.length}회)
+            {t('changeTracker.historyHeading', { n: history.length })}
           </h3>
           <button
             onClick={handleClear}
             className="flex items-center gap-1 text-xs text-zinc-500 hover:text-red-400 transition"
           >
             <Trash2 className="w-3.5 h-3.5" />
-            전체 삭제
+            {t('changeTracker.deleteAll')}
           </button>
         </div>
         {history.map((entry) => (
-          <EntryCard key={entry.id} entry={entry} onDelete={() => handleDelete(entry.id)} />
+          <EntryCard key={entry.id} entry={entry} onDelete={() => handleDelete(entry.id)} t={t} lang={lang} />
         ))}
       </div>
     </div>
@@ -225,7 +233,7 @@ function ratioFor(entry, catId) {
   return hit ? hit.ratio : 0;
 }
 
-function DietLine({ mode, catId, prev, curr }) {
+function DietLine({ mode, catId, prev, curr, t }) {
   const meta = describeCategory(catId);
   if (!meta) return null;
   const pct = (n) => Math.round(n * 1000) / 10; // 1 decimal
@@ -236,41 +244,46 @@ function DietLine({ mode, catId, prev, curr }) {
   const success = mode === 'want' ? diffP > 0.5 : diffP < -0.5;
   const flat = Math.abs(diffP) < 0.5;
 
-  const targetLabel = mode === 'want' ? '더 보고 싶다' : '그만 보고 싶다';
+  const targetLabel = mode === 'want'
+    ? t('changeTracker.diet.labels.want')
+    : t('changeTracker.diet.labels.avoid');
+  // Localized category label (fallback to source meta).
+  const catLabel = t(`categories.${catId}`) || meta.label;
+
   const tone = flat
     ? {
         bg: 'bg-zinc-800/40',
         border: 'border-zinc-700',
         icon: <CircleDashed className="w-5 h-5 text-zinc-400" />,
-        title: '변화 없음',
+        title: t('changeTracker.diet.verdict.flat'),
         titleClass: 'text-zinc-300',
         msg:
           mode === 'want'
-            ? '아직 의미 있는 변화가 감지되지 않았어요. 조금 더 꾸준히!'
-            : '아직 줄어들지 않았어요. 관심 없음 클릭을 늘려봐요.',
+            ? t('changeTracker.diet.messages.wantFlat')
+            : t('changeTracker.diet.messages.avoidFlat'),
       }
     : success
       ? {
           bg: 'bg-emerald-500/10',
           border: 'border-emerald-500/30',
           icon: <CheckCircle2 className="w-5 h-5 text-emerald-400" />,
-          title: '성공',
+          title: t('changeTracker.diet.verdict.success'),
           titleClass: 'text-emerald-300',
           msg:
             mode === 'want'
-              ? `목표대로 비중이 +${diffP.toFixed(1)}%p 올라갔어요! 🎉`
-              : `잘했어요! 비중이 ${diffP.toFixed(1)}%p 줄었어요. 💪`,
+              ? t('changeTracker.diet.messages.wantWin', { n: diffP.toFixed(1) })
+              : t('changeTracker.diet.messages.avoidWin', { n: Math.abs(diffP).toFixed(1) }),
         }
       : {
           bg: 'bg-red-500/10',
           border: 'border-red-500/30',
           icon: <XCircle className="w-5 h-5 text-red-400" />,
-          title: '실패',
+          title: t('changeTracker.diet.verdict.fail'),
           titleClass: 'text-red-300',
           msg:
             mode === 'want'
-              ? `오히려 ${absP.toFixed(1)}%p 줄었어요. 알림 설정부터 다시 해봐요.`
-              : `오히려 ${absP.toFixed(1)}%p 늘었어요. 알고리즘 다이어트 다시 가동!`,
+              ? t('changeTracker.diet.messages.wantLose', { n: absP.toFixed(1) })
+              : t('changeTracker.diet.messages.avoidLose', { n: absP.toFixed(1) }),
         };
 
   return (
@@ -280,7 +293,7 @@ function DietLine({ mode, catId, prev, curr }) {
           {tone.icon}
           <div className="min-w-0">
             <div className="text-xs text-zinc-500">
-              {targetLabel} · <span className="text-zinc-400">{meta.emoji} {meta.label}</span>
+              {targetLabel} · <span className="text-zinc-400">{meta.emoji} {catLabel}</span>
             </div>
             <div className={`text-sm font-bold ${tone.titleClass}`}>{tone.title}</div>
           </div>
@@ -308,7 +321,7 @@ function DietLine({ mode, catId, prev, curr }) {
   );
 }
 
-function DietReport({ previous, latest }) {
+function DietReport({ previous, latest, t }) {
   const target = useMemo(() => loadAlgorithmTarget(), []);
   if (!target || (!target.want && !target.avoid)) return null;
 
@@ -321,40 +334,47 @@ function DietReport({ previous, latest }) {
     <div className="rounded-2xl border border-yt-orange/30 bg-gradient-to-br from-yt-red/10 via-yt-orange/5 to-transparent overflow-hidden">
       <div className="px-5 py-4 border-b border-yt-orange/20 flex items-center gap-2">
         <Target className="w-4 h-4 text-yt-orange" />
-        <h3 className="text-sm font-bold text-zinc-100">알고리즘 다이어트 성적표</h3>
+        <h3 className="text-sm font-bold text-zinc-100">{t('changeTracker.diet.title')}</h3>
       </div>
       <div className="p-4 space-y-3">
         {target.want && (
-          <DietLine mode="want" catId={target.want} prev={wantPrev} curr={wantCurr} />
+          <DietLine mode="want" catId={target.want} prev={wantPrev} curr={wantCurr} t={t} />
         )}
         {target.avoid && (
-          <DietLine mode="avoid" catId={target.avoid} prev={avoidPrev} curr={avoidCurr} />
+          <DietLine mode="avoid" catId={target.avoid} prev={avoidPrev} curr={avoidCurr} t={t} />
         )}
         <p className="text-[11px] text-zinc-500">
-          ※ 목표는 [알고리즘 관리] 탭에서 언제든 변경할 수 있어요.
+          {t('changeTracker.diet.footer')}
         </p>
       </div>
     </div>
   );
 }
 
-function EntryCard({ entry, onDelete }) {
+function EntryCard({ entry, onDelete, t, lang }) {
+  const persName = t ? (t(`personalities.${entry.personality.id}.name`) || entry.personality.name) : entry.personality.name;
+  const topCat = entry.topCategories[0];
+  const catLabel = topCat && t ? (t(`categories.${topCat.id}`) || topCat.label) : topCat?.label;
   return (
     <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-bg-card border border-zinc-800">
       <span className="text-2xl">{entry.personality.emoji}</span>
       <div className="flex-1 min-w-0">
-        <div className="text-sm font-medium text-zinc-100">{entry.personality.name}</div>
+        <div className="text-sm font-medium text-zinc-100">{persName}</div>
         <div className="text-xs text-zinc-500 flex gap-2 mt-0.5">
-          <span>{formatDate(entry.date)}</span>
+          <span>{formatDate(entry.date, lang)}</span>
           <span>·</span>
-          <span>총 {entry.stats.total.toLocaleString()}편</span>
+          <span>{t ? t('changeTracker.entry.totalLine', { n: entry.stats.total.toLocaleString() }) : `총 ${entry.stats.total.toLocaleString()}편`}</span>
           <span>·</span>
-          <span>평균 {entry.stats.avgPerDay}편/일</span>
+          <span>{t ? t('changeTracker.entry.avgLine', { n: entry.stats.avgPerDay }) : `평균 ${entry.stats.avgPerDay}편/일`}</span>
         </div>
-        {entry.topCategories[0] && (
+        {topCat && (
           <div className="text-xs text-zinc-600 mt-0.5">
-            최다: {entry.topCategories[0].emoji} {entry.topCategories[0].label}{' '}
-            {Math.round(entry.topCategories[0].ratio * 100)}%
+            {t
+              ? t('changeTracker.entry.topLine', {
+                  label: `${topCat.emoji} ${catLabel}`,
+                  n: Math.round(topCat.ratio * 100),
+                })
+              : `최다: ${topCat.emoji} ${catLabel} ${Math.round(topCat.ratio * 100)}%`}
           </div>
         )}
       </div>

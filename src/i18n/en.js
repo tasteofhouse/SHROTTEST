@@ -17,6 +17,9 @@ export default {
   app: {
     title: 'Shorts Insight',
     privacyBadge: 'Privacy-first · Client-side only',
+    adLabel: 'Ad',
+    metaTitle: 'Shorts Insight — Analyze your YouTube taste',
+    metaDesc: 'Analyze your YouTube watching habits. All processing happens locally in your browser.',
   },
 
   landing: {
@@ -51,6 +54,18 @@ export default {
       title: 'Try it in airplane mode',
       body: 'Turn off Wi-Fi and cellular — analysis still works. Files never leave your browser.',
     },
+    features: {
+      privacy: { title: 'Full privacy', desc: 'Nothing gets uploaded. Analysis runs only in your browser.' },
+      speed:   { title: 'Fast', desc: 'Hundreds of thousands of entries are crunched in seconds.' },
+      insight: { title: 'Rich insights', desc: 'Personality type, time-of-day patterns, top channels, categories, and trends — all in one view.' },
+    },
+    guide: {
+      headerTitle: 'How to get your watch-history file — step by step',
+      headerBadge: '~5 min',
+      intro: 'Google Takeout is the official way to download data tied to your Google account. The first link opens with YouTube already selected — just follow along.',
+      done: '✅ Got the file? Tap "Analyze my taste" above and upload it.',
+    },
+    badges: { youtubeOnly: 'YouTube & YouTube Music ✓' },
   },
 
   upload: {
@@ -143,6 +158,40 @@ export default {
     },
     reset: 'Upload new file',
     resultTab: { viewShareCard: 'View share card', viewMbti: 'View MBTI card' },
+    cards: {
+      music: { title: '🎵 YouTube Music listens', subtitle: 'Tracked separately · Top 10 artists/channels' },
+      categoryDist: { title: 'Category mix', subtitle: 'What you watched the most' },
+      topChannels: { title: 'Top channels', subtitle: 'Most-watched channels, auto-categorized' },
+      heatmap: { title: 'Hour × Day heatmap', subtitle: 'When do you watch the most?' },
+      trend: { title: 'Last 30 days', subtitle: 'Daily watch volume trend' },
+      guide: { title: 'Personalized algorithm guide', subtitle: 'Tune the YouTube algorithm based on your top categories' },
+      history: { title: 'Change tracker', subtitle: 'Compare past analyses to see how your habits shift' },
+      share: { title: 'Build a share card', subtitle: "Show your friends what your YouTube taste looks like" },
+    },
+    quickStats: {
+      total: 'Total watched',
+      avg: 'Daily avg',
+      channels: 'Channels seen',
+      peak: 'Peak hour',
+      hourSuffix: ':00',
+    },
+    sourceSummary: {
+      title: 'Watch-history breakdown',
+      subtitle: 'Total {total} entries · Type/category analysis uses YouTube ({yt})',
+      video: 'Regular videos',
+      shorts: 'Shorts',
+      music: 'YouTube Music',
+      note: '💡 YouTube Music is for listening, so we exclude it from category analysis and show it separately.',
+    },
+    music: {
+      total: 'Total listens',
+      uniqueArtists: 'Artists',
+      peakHour: 'Peak hour',
+      nightRatio: 'Late-night %',
+      topListHeading: 'Top 10 artists · channels',
+      countSuffix: 'plays',
+      artistSuffix: '',
+    },
   },
 
   personality: {
@@ -216,10 +265,16 @@ export default {
     personality: 'Viewing type',
     changed: 'Change',
     labels: { total: 'Total watched', avg: 'Daily avg', channels: 'Channels seen', night: 'Late-night views', topCategory: 'Top category' },
+    suffix: { videos: '', channels: '' },
     noChange: 'No change',
     historyHeading: 'Full history ({n} runs)',
     deleteAll: 'Delete all',
     confirmClearAll: 'Delete all analysis history?',
+    entry: {
+      totalLine: '{n} videos',
+      avgLine: '{n}/day avg',
+      topLine: 'Top: {label} {n}%',
+    },
     diet: {
       title: 'Algorithm diet report card',
       footer: '※ Edit your goals anytime in the [Algorithm diet] tab.',
@@ -299,6 +354,13 @@ export default {
     drift:   { name: 'Algorithm Drifter', tagline: 'No taste — soul surrendered to the feed', description: 'Whatever pops up, you watch. The feed IS your personality. Ask your taste and you just sigh, "...dunno."', vibe: 'Refugee of the feed' },
     addict:  { name: 'Dopamine Addict', tagline: '"Just one more" — 200th time today', description: '3 AM, 3 AM, 3 AM... the brain switch that stops scrolling is busted. Final warning before a clinic visit.', vibe: 'Algorithm treadmill' },
     shorts:  { name: 'Shorts Native', tagline: '5-minute videos now feel like feature films', description: 'A brain rewired for vertical scroll. Average attention span: 15 seconds. Anything longer is physically stressful.', vibe: 'Shorts indigenous' },
+  },
+
+  heatmap: {
+    legendLow: 'Less',
+    legendHigh: 'More',
+    cellTooltip: '{day} {h}:00 — {n} videos',
+    weekdays: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
   },
 
   shared: {

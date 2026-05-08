@@ -71,8 +71,26 @@ export function I18nProvider({ children }) {
   }, []);
 
   useEffect(() => {
-    // Reflect on <html lang="..."> for accessibility + browser translation hints
-    try { document.documentElement.lang = lang; } catch { /* ignore */ }
+    // Reflect on <html lang="..."> for accessibility + browser translation hints,
+    // and refresh <title> + <meta description> so SEO + browser tab match the
+    // active locale.
+    try {
+      document.documentElement.lang = lang;
+      const title = pick(LOCALES[lang], 'app.metaTitle')
+        || pick(LOCALES[DEFAULT_LANG], 'app.metaTitle');
+      if (title) document.title = title;
+      const desc = pick(LOCALES[lang], 'app.metaDesc')
+        || pick(LOCALES[DEFAULT_LANG], 'app.metaDesc');
+      if (desc) {
+        let meta = document.querySelector('meta[name="description"]');
+        if (!meta) {
+          meta = document.createElement('meta');
+          meta.name = 'description';
+          document.head.appendChild(meta);
+        }
+        meta.content = desc;
+      }
+    } catch { /* ignore — SSR or restricted DOM */ }
   }, [lang]);
 
   const t = useCallback(

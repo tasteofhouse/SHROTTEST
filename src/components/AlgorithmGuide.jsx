@@ -10,6 +10,7 @@ import {
   Sparkles,
 } from 'lucide-react';
 import { CATEGORIES, CATEGORY_BY_ID } from '../utils/categorize';
+import { useT } from '../i18n/index.jsx';
 
 // -------------------------------------------------------------------------
 // LocalStorage keys
@@ -221,7 +222,7 @@ const TIPS = {
 // -------------------------------------------------------------------------
 // Sub-component: Target selector (top of guide)
 // -------------------------------------------------------------------------
-function TargetPicker({ options, target, onChange }) {
+function TargetPicker({ options, target, onChange, t }) {
   const handle = (key) => (e) => {
     const next = { ...target, [key]: e.target.value || null };
     onChange(next);
@@ -231,42 +232,42 @@ function TargetPicker({ options, target, onChange }) {
     <div className="rounded-2xl border border-yt-orange/30 bg-gradient-to-br from-yt-red/10 via-yt-orange/5 to-transparent p-4 space-y-3">
       <div className="flex items-center gap-2">
         <Target className="w-4 h-4 text-yt-orange" />
-        <h3 className="text-sm font-bold text-zinc-100">알고리즘 다이어트 목표 설정</h3>
+        <h3 className="text-sm font-bold text-zinc-100">{t('algorithmGuide.target.title')}</h3>
       </div>
       <p className="text-xs text-zinc-400 -mt-1">
-        한 달 뒤 비교할 목표 카테고리를 정해두면, 다음 분석 때 성공 여부를 채점해드려요.
+        {t('algorithmGuide.target.subtitle')}
       </p>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <label className="block space-y-1">
           <span className="text-xs text-emerald-400 flex items-center gap-1">
-            <ThumbsUp className="w-3 h-3" /> 더 보고 싶은 카테고리
+            <ThumbsUp className="w-3 h-3" /> {t('algorithmGuide.target.want')}
           </span>
           <select
             value={target.want || ''}
             onChange={handle('want')}
             className="w-full px-3 py-2 rounded-lg bg-bg-card border border-zinc-700 text-sm text-zinc-100 focus:border-emerald-500 focus:outline-none transition"
           >
-            <option value="">선택 안 함</option>
+            <option value="">{t('algorithmGuide.target.none')}</option>
             {options.map((c) => (
               <option key={c.id} value={c.id}>
-                {c.emoji} {c.label}
+                {c.emoji} {t(`categories.${c.id}`) || c.label}
               </option>
             ))}
           </select>
         </label>
         <label className="block space-y-1">
           <span className="text-xs text-red-400 flex items-center gap-1">
-            <ThumbsDown className="w-3 h-3" /> 그만 보고 싶은 카테고리
+            <ThumbsDown className="w-3 h-3" /> {t('algorithmGuide.target.avoid')}
           </span>
           <select
             value={target.avoid || ''}
             onChange={handle('avoid')}
             className="w-full px-3 py-2 rounded-lg bg-bg-card border border-zinc-700 text-sm text-zinc-100 focus:border-red-500 focus:outline-none transition"
           >
-            <option value="">선택 안 함</option>
+            <option value="">{t('algorithmGuide.target.none')}</option>
             {options.map((c) => (
               <option key={c.id} value={c.id}>
-                {c.emoji} {c.label}
+                {c.emoji} {t(`categories.${c.id}`) || c.label}
               </option>
             ))}
           </select>
@@ -275,7 +276,7 @@ function TargetPicker({ options, target, onChange }) {
       {(target.want || target.avoid) && (
         <p className="text-[11px] text-zinc-500 flex items-center gap-1">
           <Sparkles className="w-3 h-3" />
-          저장됐어요. 다음 분석부터 [알고리즘 다이어트 성적표]가 표시됩니다.
+          {t('algorithmGuide.target.saved')}
         </p>
       )}
     </div>
@@ -286,6 +287,7 @@ function TargetPicker({ options, target, onChange }) {
 // Main component
 // -------------------------------------------------------------------------
 export default function AlgorithmGuide({ topCategories }) {
+  const { t } = useT();
   const [prefs, setPrefs] = useState(() => loadJSON(LS_PREFS, {}));
   const [expanded, setExpanded] = useState({});
   const [checked, setChecked] = useState(() => loadJSON(LS_TIPS, {}));
@@ -350,19 +352,18 @@ export default function AlgorithmGuide({ topCategories }) {
   return (
     <div className="space-y-5">
       {/* Goal picker */}
-      <TargetPicker options={selectOptions} target={target} onChange={setTarget} />
+      <TargetPicker options={selectOptions} target={target} onChange={setTarget} t={t} />
 
       <div className="flex items-start gap-3 p-4 rounded-xl bg-blue-500/10 border border-blue-500/20">
         <Lightbulb className="w-5 h-5 text-blue-400 flex-shrink-0 mt-0.5" />
         <p className="text-sm text-zinc-300">
-          내 시청 기록 상위 카테고리를 가져왔어요. 각 카테고리에 <b>좋아요/줄이기</b>를 표시하고,
-          미션 팁의 체크박스를 하나씩 눌러보세요. 진행 상태는 이 브라우저에 자동 저장돼요.
+          {t('algorithmGuide.intro')}
         </p>
       </div>
 
       {displayCats.length === 0 ? (
         <p className="text-sm text-zinc-500 text-center py-4">
-          분석 데이터가 없어요. 먼저 시청 기록을 분석해주세요.
+          {t('algorithmGuide.noData')}
         </p>
       ) : (
         <div className="space-y-3">
@@ -370,6 +371,7 @@ export default function AlgorithmGuide({ topCategories }) {
             const pref = prefs[cat.id];
             const tips = TIPS[cat.id] || TIPS.etc;
             const isOpen = expanded[cat.id];
+            const catLabel = t(`categories.${cat.id}`) || cat.label;
 
             return (
               <div
@@ -380,9 +382,9 @@ export default function AlgorithmGuide({ topCategories }) {
                 <div className="flex items-center gap-3 px-4 py-3">
                   <span className="text-2xl">{cat.emoji}</span>
                   <div className="flex-1 min-w-0">
-                    <div className="text-sm font-medium text-zinc-100">{cat.label}</div>
+                    <div className="text-sm font-medium text-zinc-100">{catLabel}</div>
                     <div className="text-xs text-zinc-500">
-                      전체의 {Math.round(cat.ratio * 100)}%
+                      {t('algorithmGuide.shareOf', { n: Math.round(cat.ratio * 100) })}
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
@@ -395,7 +397,7 @@ export default function AlgorithmGuide({ topCategories }) {
                         }`}
                     >
                       <ThumbsUp className="w-3.5 h-3.5" />
-                      좋아요
+                      {t('algorithmGuide.like')}
                     </button>
                     <button
                       onClick={() => toggle(cat.id, 'dislike')}
@@ -406,7 +408,7 @@ export default function AlgorithmGuide({ topCategories }) {
                         }`}
                     >
                       <ThumbsDown className="w-3.5 h-3.5" />
-                      줄이기
+                      {t('algorithmGuide.dislike')}
                     </button>
                   </div>
                 </div>
@@ -419,7 +421,7 @@ export default function AlgorithmGuide({ topCategories }) {
                       className="w-full flex items-center justify-between px-4 py-2.5 text-xs text-zinc-400 hover:text-zinc-200 transition"
                     >
                       <span>
-                        {pref === 'like' ? '📈 늘리는 방법' : '📉 줄이는 방법'} 보기 (3가지)
+                        {pref === 'like' ? t('algorithmGuide.tipsToIncrease') : t('algorithmGuide.tipsToReduce')}
                       </span>
                       {isOpen ? (
                         <ChevronUp className="w-4 h-4" />
@@ -438,7 +440,6 @@ export default function AlgorithmGuide({ topCategories }) {
                                 <button
                                   onClick={() => toggleTip(key)}
                                   aria-pressed={done}
-                                  aria-label={`${done ? '완료 해제' : '완료 표시'}: ${tip}`}
                                   className={`flex-shrink-0 w-5 h-5 rounded border flex items-center justify-center text-[11px] font-bold transition
                                     ${done
                                       ? pref === 'like'
@@ -471,7 +472,7 @@ export default function AlgorithmGuide({ topCategories }) {
                               className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 text-xs font-medium hover:bg-emerald-500/20 transition"
                             >
                               <ExternalLink className="w-3.5 h-3.5" />
-                              YouTube에서 "{cat.label}" 바로 보기
+                              {t('algorithmGuide.deepLinks.search', { label: catLabel })}
                             </a>
                           ) : (
                             <>
@@ -482,7 +483,7 @@ export default function AlgorithmGuide({ topCategories }) {
                                 className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-red-500/10 border border-red-500/30 text-red-300 text-xs font-medium hover:bg-red-500/20 transition"
                               >
                                 <ExternalLink className="w-3.5 h-3.5" />
-                                Google 활동기록에서 삭제하기
+                                {t('algorithmGuide.deepLinks.activity')}
                               </a>
                               <a
                                 href={YOUTUBE_FEED_SETTINGS_URL}
@@ -491,7 +492,7 @@ export default function AlgorithmGuide({ topCategories }) {
                                 className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-zinc-800 border border-zinc-700 text-zinc-300 text-xs font-medium hover:bg-zinc-700 transition"
                               >
                                 <ExternalLink className="w-3.5 h-3.5" />
-                                YouTube 시청 기록 관리
+                                {t('algorithmGuide.deepLinks.history')}
                               </a>
                             </>
                           )}
@@ -510,13 +511,11 @@ export default function AlgorithmGuide({ topCategories }) {
       {(selectedCount > 0 || completedCount > 0) && (
         <div className="p-4 rounded-xl bg-yt-orange/10 border border-yt-orange/20 text-sm text-zinc-300 space-y-1">
           <div>
-            <strong className="text-yt-orange">{selectedCount}개 카테고리</strong>에 대한 가이드를
-            설정했어요.
+            {t('algorithmGuide.summary.count', { n: selectedCount })}
           </div>
           {completedCount > 0 && (
             <div className="text-xs text-zinc-400">
-              ✅ 실천 미션 <strong className="text-emerald-400">{completedCount}개</strong> 완료 —
-              잘하고 있어요!
+              {t('algorithmGuide.summary.completed', { n: completedCount })}
             </div>
           )}
         </div>

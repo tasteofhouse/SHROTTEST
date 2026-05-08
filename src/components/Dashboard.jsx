@@ -113,7 +113,7 @@ export default function Dashboard({ data, onReset, isSample = false }) {
             stats={stats}
             sourceCounts={sourceCounts}
           />
-          {sourceCounts && <SourceSummary counts={sourceCounts} />}
+          {sourceCounts && <SourceSummary counts={sourceCounts} t={t} />}
           <PersonalityCard
             personality={personality}
             stats={stats}
@@ -125,44 +125,44 @@ export default function Dashboard({ data, onReset, isSample = false }) {
         </div>
       )}
 
-      {/* Tab: 통계 */}
+      {/* Tab: stats */}
       {activeTab === 'stats' && (
         <div className="space-y-5 animate-fade-up">
           <InsightCards insights={insights} />
 
           {musicInsight && musicInsight.total > 0 && (
-            <Card title="🎵 YouTube Music 청취 기록" subtitle="별도 집계 · 아티스트/채널 Top 10">
-              <MusicCard musicInsight={musicInsight} />
+            <Card title={t('dashboard.cards.music.title')} subtitle={t('dashboard.cards.music.subtitle')}>
+              <MusicCard musicInsight={musicInsight} t={t} />
             </Card>
           )}
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-            <Card title="카테고리 분포" subtitle="어떤 영상을 많이 봤나요?">
+            <Card title={t('dashboard.cards.categoryDist.title')} subtitle={t('dashboard.cards.categoryDist.subtitle')}>
               <CategoryChart categoryDist={categoryDist} />
             </Card>
-            <Card title="Top 채널" subtitle="가장 자주 본 채널 · 카테고리 자동 분류">
+            <Card title={t('dashboard.cards.topChannels.title')} subtitle={t('dashboard.cards.topChannels.subtitle')}>
               <TopChannels topChannels={topChannels} />
             </Card>
           </div>
 
           <Card
-            title="시간대 × 요일 히트맵"
-            subtitle="언제 YouTube를 가장 많이 보나요?"
+            title={t('dashboard.cards.heatmap.title')}
+            subtitle={t('dashboard.cards.heatmap.subtitle')}
           >
             <TimeHeatmap heatmap={heatmap} />
           </Card>
 
-          <Card title="최근 30일 시청량" subtitle="일별 시청 추이">
+          <Card title={t('dashboard.cards.trend.title')} subtitle={t('dashboard.cards.trend.subtitle')}>
             <TrendChart trend={trend} />
           </Card>
 
           {/* Quick stats summary */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
             {[
-              { label: '총 시청', value: stats.total.toLocaleString() + '편' },
-              { label: '하루 평균', value: stats.avgPerDay.toFixed(1) + '편' },
-              { label: '본 채널 수', value: stats.uniqueChannels.toLocaleString() + '개' },
-              { label: '피크 시간', value: stats.peakHour + '시' },
+              { label: t('dashboard.quickStats.total'), value: t('common.videos', { n: stats.total.toLocaleString() }) },
+              { label: t('dashboard.quickStats.avg'), value: t('common.videos', { n: stats.avgPerDay.toFixed(1) }) },
+              { label: t('dashboard.quickStats.channels'), value: t('common.channels', { n: stats.uniqueChannels.toLocaleString() }) },
+              { label: t('dashboard.quickStats.peak'), value: stats.peakHour + t('dashboard.quickStats.hourSuffix') },
             ].map(({ label, value }) => (
               <div
                 key={label}
@@ -176,36 +176,36 @@ export default function Dashboard({ data, onReset, isSample = false }) {
         </div>
       )}
 
-      {/* Tab: 알고리즘 가이드 */}
+      {/* Tab: algorithm guide */}
       {activeTab === 'guide' && (
         <div className="animate-fade-up">
           <Card
-            title="알고리즘 맞춤 가이드"
-            subtitle="내 시청 카테고리를 기반으로 YouTube 알고리즘을 조정해보세요"
+            title={t('dashboard.cards.guide.title')}
+            subtitle={t('dashboard.cards.guide.subtitle')}
           >
             <AlgorithmGuide topCategories={topCategories} />
           </Card>
         </div>
       )}
 
-      {/* Tab: 변화 추적 */}
+      {/* Tab: history */}
       {activeTab === 'history' && (
         <div className="animate-fade-up">
           <Card
-            title="변화 추적"
-            subtitle="분석 히스토리를 비교해 시청 패턴의 변화를 확인해보세요"
+            title={t('dashboard.cards.history.title')}
+            subtitle={t('dashboard.cards.history.subtitle')}
           >
             <ChangeTracker />
           </Card>
         </div>
       )}
 
-      {/* Tab: 공유하기 */}
+      {/* Tab: share */}
       {activeTab === 'share' && (
         <div className="animate-fade-up">
           <Card
-            title="공유 카드 만들기"
-            subtitle="친구에게 내 YouTube 취향을 자랑해보세요"
+            title={t('dashboard.cards.share.title')}
+            subtitle={t('dashboard.cards.share.subtitle')}
           >
             <ShareCard
               personality={personality}
@@ -239,15 +239,15 @@ function Card({ title, subtitle, children }) {
   );
 }
 
-// Shows how the raw watch history breaks down into YouTube 일반영상 / Shorts / Music
+// Shows how the raw watch history breaks down into regular video / Shorts / Music
 // so users understand exactly what the personality analysis covered (YouTube side)
 // and what was set aside (Music listens).
-function SourceSummary({ counts }) {
+function SourceSummary({ counts, t }) {
   const { video, shorts, music, youtubeTotal, total } = counts;
   const items = [
     {
       icon: Film,
-      label: '일반 영상',
+      label: t('dashboard.sourceSummary.video'),
       value: video,
       tone: 'text-blue-400',
       bg: 'bg-blue-400/10',
@@ -255,7 +255,7 @@ function SourceSummary({ counts }) {
     },
     {
       icon: Zap,
-      label: '쇼츠',
+      label: t('dashboard.sourceSummary.shorts'),
       value: shorts,
       tone: 'text-yt-orange',
       bg: 'bg-yt-orange/10',
@@ -263,7 +263,7 @@ function SourceSummary({ counts }) {
     },
     {
       icon: Music2,
-      label: 'YouTube Music',
+      label: t('dashboard.sourceSummary.music'),
       value: music,
       tone: 'text-emerald-400',
       bg: 'bg-emerald-400/10',
@@ -275,10 +275,12 @@ function SourceSummary({ counts }) {
     <section className="rounded-2xl p-4 md:p-5 bg-bg-card border border-zinc-800">
       <div className="flex items-center justify-between mb-3">
         <div>
-          <h3 className="text-sm font-semibold text-zinc-100">시청 기록 구성</h3>
+          <h3 className="text-sm font-semibold text-zinc-100">{t('dashboard.sourceSummary.title')}</h3>
           <p className="text-xs text-zinc-500 mt-0.5">
-            총 <strong className="text-zinc-300">{total.toLocaleString()}</strong>건 ·
-            유형/카테고리 분석은 <strong className="text-zinc-300">YouTube({youtubeTotal.toLocaleString()})</strong> 기준이에요
+            {t('dashboard.sourceSummary.subtitle', {
+              total: total.toLocaleString(),
+              yt: youtubeTotal.toLocaleString(),
+            })}
           </p>
         </div>
       </div>
@@ -297,7 +299,7 @@ function SourceSummary({ counts }) {
         ))}
       </div>
       <p className="text-[11px] text-zinc-600 mt-2.5">
-        💡 YouTube Music은 음악 청취 채널이라 카테고리 분석에서 제외하고 별도로 보여드려요.
+        {t('dashboard.sourceSummary.note')}
       </p>
     </section>
   );
@@ -306,18 +308,20 @@ function SourceSummary({ counts }) {
 // Music listens are shown as a flat top-channel list (YouTube Music treats
 // "channel" as artist/album uploader). No category classification since
 // genre detection from titles is unreliable.
-function MusicCard({ musicInsight }) {
+function MusicCard({ musicInsight, t }) {
   const { total, uniqueArtists, topArtists, peakHour, nightRatio } = musicInsight;
   const maxCount = topArtists[0]?.count || 1;
+  const countSfx = t('dashboard.music.countSuffix');
+  const artistSfx = t('dashboard.music.artistSuffix');
 
   return (
     <div className="space-y-4">
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
         {[
-          { label: '총 청취', value: total.toLocaleString() + '회' },
-          { label: '아티스트 수', value: uniqueArtists.toLocaleString() + '명' },
-          { label: '피크 시간', value: peakHour + '시' },
-          { label: '새벽 비율', value: Math.round(nightRatio * 100) + '%' },
+          { label: t('dashboard.music.total'), value: `${total.toLocaleString()}${countSfx}` },
+          { label: t('dashboard.music.uniqueArtists'), value: `${uniqueArtists.toLocaleString()}${artistSfx}` },
+          { label: t('dashboard.music.peakHour'), value: peakHour + t('dashboard.quickStats.hourSuffix') },
+          { label: t('dashboard.music.nightRatio'), value: Math.round(nightRatio * 100) + '%' },
         ].map(({ label, value }) => (
           <div
             key={label}
@@ -330,7 +334,7 @@ function MusicCard({ musicInsight }) {
       </div>
 
       <div className="space-y-2">
-        <div className="text-xs text-zinc-500 font-semibold">Top 10 아티스트 · 채널</div>
+        <div className="text-xs text-zinc-500 font-semibold">{t('dashboard.music.topListHeading')}</div>
         {topArtists.slice(0, 10).map((a, i) => (
           <div key={a.channel} className="flex items-center gap-3">
             <div className="w-6 text-xs tabular-nums text-zinc-500 flex-shrink-0">
@@ -340,7 +344,7 @@ function MusicCard({ musicInsight }) {
               <div className="flex items-center justify-between gap-2 mb-1">
                 <div className="text-sm text-zinc-200 truncate">{a.channel}</div>
                 <div className="text-xs tabular-nums text-zinc-400 flex-shrink-0">
-                  {a.count.toLocaleString()}회
+                  {a.count.toLocaleString()}{countSfx}
                 </div>
               </div>
               <div className="h-1.5 bg-zinc-800 rounded-full overflow-hidden">

@@ -17,6 +17,9 @@ export default {
   app: {
     title: 'Shorts Insight',
     privacyBadge: 'プライバシー優先 · クライアントサイド',
+    adLabel: '広告',
+    metaTitle: 'Shorts Insight — あなたのYouTube趣味を分析',
+    metaDesc: 'YouTubeの視聴習慣を解析。すべての分析はブラウザ内で完結します。',
   },
 
   landing: {
@@ -51,6 +54,18 @@ export default {
       title: '機内モードで確認してみて',
       body: 'Wi-Fiもモバイル通信もOFFで分析は動作します。ファイルは絶対にサーバーへ送られません。',
     },
+    features: {
+      privacy: { title: '完全プライバシー', desc: 'ファイルはどこにもアップロードされません。ブラウザ内だけで解析。' },
+      speed:   { title: '高速分析', desc: '数十万件の視聴履歴も一瞬で分析。' },
+      insight: { title: '豊富なインサイト', desc: '趣味タイプ・時間帯・Topチャンネル・カテゴリ・変化推移まで一目で。' },
+    },
+    guide: {
+      headerTitle: '視聴履歴ファイルの取得方法 — 画像で見る手順',
+      headerBadge: '5分',
+      intro: 'Google Takeoutは、Googleアカウントに保存されたデータを公式に取得できるサービスです。最初のリンクはYouTubeが選択済みの状態で開くので、そのまま進めてください。',
+      done: '✅ ファイルが取得できたら上の「私の好みを分析する」ボタンからアップロード!',
+    },
+    badges: { youtubeOnly: 'YouTube · YouTube Music ✓' },
   },
 
   upload: {
@@ -143,6 +158,40 @@ export default {
     },
     reset: '新しいファイルをアップロード',
     resultTab: { viewShareCard: 'シェアカードを見る', viewMbti: 'MBTIカードを見る' },
+    cards: {
+      music: { title: '🎵 YouTube Music 聴取履歴', subtitle: '別集計 · アーティスト/チャンネル Top 10' },
+      categoryDist: { title: 'カテゴリ分布', subtitle: 'どんな動画をたくさん見た?' },
+      topChannels: { title: 'Top チャンネル', subtitle: '最頻視聴チャンネル · カテゴリ自動分類' },
+      heatmap: { title: '時間帯 × 曜日 ヒートマップ', subtitle: 'YouTubeを最も見る時間は?' },
+      trend: { title: '直近30日の視聴量', subtitle: '日別視聴推移' },
+      guide: { title: 'アルゴリズム最適化ガイド', subtitle: 'あなたの視聴カテゴリを基にYouTubeアルゴリズムを調整しよう' },
+      history: { title: '変化トラッキング', subtitle: '分析履歴を比較して視聴パターンの変化を確認' },
+      share: { title: 'シェアカード作成', subtitle: '友達にあなたのYouTube趣味を自慢しよう' },
+    },
+    quickStats: {
+      total: '総視聴',
+      avg: '1日平均',
+      channels: '視聴チャンネル数',
+      peak: 'ピーク時間',
+      hourSuffix: '時',
+    },
+    sourceSummary: {
+      title: '視聴履歴の構成',
+      subtitle: '計{total}件 · タイプ/カテゴリ分析は YouTube({yt}) 基準',
+      video: '通常動画',
+      shorts: 'ショーツ',
+      music: 'YouTube Music',
+      note: '💡 YouTube Musicは音楽聴取チャンネルのため、カテゴリ分析からは除外し別途表示しています。',
+    },
+    music: {
+      total: '総聴取',
+      uniqueArtists: 'アーティスト数',
+      peakHour: 'ピーク時間',
+      nightRatio: '深夜比率',
+      topListHeading: 'Top 10 アーティスト · チャンネル',
+      countSuffix: '回',
+      artistSuffix: '名',
+    },
   },
 
   personality: {
@@ -216,10 +265,16 @@ export default {
     personality: '視聴タイプ',
     changed: '変化',
     labels: { total: '総視聴', avg: '1日平均', channels: '視聴チャンネル数', night: '深夜視聴', topCategory: '最多カテゴリ' },
+    suffix: { videos: '本', channels: '個' },
     noChange: '変化なし',
     historyHeading: '全履歴({n}回)',
     deleteAll: 'すべて削除',
     confirmClearAll: 'すべての分析履歴を削除しますか?',
+    entry: {
+      totalLine: '計{n}本',
+      avgLine: '平均{n}本/日',
+      topLine: '最多: {label} {n}%',
+    },
     diet: {
       title: 'アルゴリズム・ダイエット成績表',
       footer: '※ 目標は[アルゴリズム管理]タブでいつでも変更できます。',
@@ -299,6 +354,13 @@ export default {
     drift:   { name: 'アルゴリズム漂流型', tagline: '好みなし、魂はアルゴリズムに委任', description: '何が流れてもとりあえず観る。フィードがそのまま人格。好みを聞かれると「知らない...」とため息。', vibe: 'フィードの難民' },
     addict:  { name: 'ドーパミン中毒型', tagline: '「あと1本だけ」、今日だけで200回目', description: '夜中3時、夜中3時、夜中3時...スクロールを止める脳のスイッチが故障。病院行き前の最終警告。', vibe: 'アルゴリズム・ランニングマシン' },
     shorts:  { name: 'ショーツ・ネイティブ', tagline: '5分動画はもう「長編映画」に感じる', description: '縦スクロールに最適化された脳の新人類。平均集中力は15秒、それ以上はストレス。', vibe: 'ショーツ原住民' },
+  },
+
+  heatmap: {
+    legendLow: '少',
+    legendHigh: '多',
+    cellTooltip: '{day}曜 {h}時 — {n}本',
+    weekdays: ['日', '月', '火', '水', '木', '金', '土'],
   },
 
   shared: {

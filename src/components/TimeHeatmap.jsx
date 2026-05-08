@@ -1,8 +1,17 @@
 // Custom 7x24 heatmap using plain divs (more compact than recharts for this).
+import { useT } from '../i18n/index.jsx';
 
 export default function TimeHeatmap({ heatmap }) {
+  const { t } = useT();
   if (!heatmap || !heatmap.grid) return null;
-  const { grid, weekdays } = heatmap;
+  const { grid } = heatmap;
+  // Locale-aware short weekday labels (fall back to whatever the analyzer
+  // shipped). The analyzer produces these in Korean, so the tooltip too uses
+  // a locale-aware template.
+  const weekdayList = t('heatmap.weekdays');
+  const weekdays = Array.isArray(weekdayList) && weekdayList.length === 7
+    ? weekdayList
+    : heatmap.weekdays;
 
   const max = Math.max(1, ...grid.flat());
 
@@ -40,7 +49,7 @@ export default function TimeHeatmap({ heatmap }) {
                   key={h}
                   className="flex-1 aspect-square rounded-[3px] transition-transform hover:scale-110"
                   style={{ background: cellColor(count) }}
-                  title={`${weekdays[d]}요일 ${h}시 — ${count}편`}
+                  title={t('heatmap.cellTooltip', { day: weekdays[d], h, n: count })}
                 />
               ))}
             </div>
@@ -49,7 +58,7 @@ export default function TimeHeatmap({ heatmap }) {
 
         {/* Legend */}
         <div className="mt-4 flex items-center justify-end gap-1.5 text-[10px] text-zinc-500">
-          <span>적음</span>
+          <span>{t('heatmap.legendLow')}</span>
           {[0.1, 0.3, 0.5, 0.7, 1.0].map((a) => (
             <div
               key={a}
@@ -57,7 +66,7 @@ export default function TimeHeatmap({ heatmap }) {
               style={{ background: `rgba(255, 0, 0, ${a})` }}
             />
           ))}
-          <span>많음</span>
+          <span>{t('heatmap.legendHigh')}</span>
         </div>
       </div>
     </div>
