@@ -66,6 +66,64 @@ export default {
       done: '✅ Got the file? Tap "Analyze my taste" above and upload it.',
     },
     badges: { youtubeOnly: 'YouTube & YouTube Music ✓' },
+    takeoutBtn: '1️⃣ Get Takeout file',
+    steps: [
+      {
+        title: 'Open the Google Takeout page (YouTube only)',
+        desc: 'The link below opens Takeout with YouTube pre-selected, signed in to your default Google account.',
+        actionText: 'Open Takeout (YouTube selected)',
+        tip: '💡 Easier on a PC than mobile. With multiple accounts, sign in to the one you actually use for YouTube.',
+      },
+      {
+        title: 'Confirm only YouTube is checked',
+        desc: 'When the link opens, only "YouTube and YouTube Music" should be ticked. Quickly scan to confirm nothing else is selected.',
+        tip: '💡 Other selections can balloon the file to several GB.',
+      },
+      {
+        title: 'Keep only "history" checked',
+        desc: 'Click "All YouTube data included" next to YouTube → keep only "history" and uncheck the rest. ✨ The default HTML format works perfectly — no need to switch to JSON. Either is fine.',
+        tip: '💡 Both HTML and JSON are fully supported · format change is optional.',
+      },
+      {
+        title: 'Create the export',
+        desc: 'Scroll down → "Next step" → "Create export". Soon Google emails you a "Your download is ready" link. Click it to save the zip file.',
+        tip: '💡 Prep takes anywhere from 1 minute to a few hours (depending on volume).',
+      },
+      {
+        title: 'Unzip and find the file',
+        desc: 'Unzip the file → look inside Takeout / YouTube and YouTube Music / history. Either HTML or JSON works — drop it onto the "Analyze my taste" upload box and you\'re done!',
+        tip: '💡 HTML or JSON, English or Korean filenames — all OK. Names change with your account language.',
+      },
+    ],
+    faqHeading: 'Frequently asked questions',
+    faqList: [
+      { q: 'My file is huge — will it upload?', a: 'Up to 500MB is fine. Most watch histories are 5–50MB, so you should be safe.' },
+      { q: 'I only got the HTML file — is that OK?', a: 'Perfect! HTML and JSON both work. Just upload as-is.' },
+      { q: 'I had "watch history" turned off. Will it still analyze?', a: 'Whatever was logged before you turned it off is still there. New views just don\'t accumulate.' },
+      { q: 'Is the result saved to a server?', a: 'No. Files never leave your browser. Once analysis is done, they\'re wiped from memory.' },
+    ],
+    privacyHero: {
+      title: 'ZERO server uploads · suspicious? Test it in airplane mode',
+      body: 'Even with the internet fully off, analysis runs. Open the network tab to verify. Files never leave your browser, and they vanish from memory the moment analysis is done.',
+    },
+    illust: {
+      youtubeChecked: 'YouTube & YouTube Music ✓',
+      photos: 'Google Photos',
+      drive: 'Google Drive',
+      formatLabel: 'Format',
+      formatJson: 'JSON ✓',
+      itemSubscribe: 'Subscriptions',
+      itemHistory: 'History',
+      itemComment: 'Comments',
+      itemPlaylist: 'Playlists',
+      exportHeading: 'Export type',
+      exportOption: '📥 One-time export · .zip · 2GB',
+      mailWaiting: '📧 Waiting for "ready" email',
+      exportButton: 'Create export ▶',
+      folderTakeout: 'Takeout /',
+      folderYoutube: 'YouTube /',
+      folderHistory: 'history /',
+    },
   },
 
   upload: {
@@ -361,6 +419,21 @@ export default {
     legendHigh: 'More',
     cellTooltip: '{day} {h}:00 — {n} videos',
     weekdays: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
+  },
+
+  mbti: {
+    eyebrow: 'MBTI-style viewing type',
+    basis: '5-axis based',
+    totalTypes: '32 types total',
+    leaning: '{name}-leaning {n}%',
+  },
+
+  feedback: {
+    prompt: 'How did we do?',
+    thanks: 'Thanks for the feedback! We\'ll use it to improve. 🙏',
+    accurate: 'Accurate',
+    interesting: 'Interesting',
+    disappointing: 'Disappointing',
   },
 
   shared: {

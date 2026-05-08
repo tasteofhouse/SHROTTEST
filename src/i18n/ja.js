@@ -66,6 +66,64 @@ export default {
       done: '✅ ファイルが取得できたら上の「私の好みを分析する」ボタンからアップロード!',
     },
     badges: { youtubeOnly: 'YouTube · YouTube Music ✓' },
+    takeoutBtn: '1️⃣ Takeoutファイルを取得',
+    steps: [
+      {
+        title: 'Google Takeout · YouTube専用ページを開く',
+        desc: '下の近道リンクを押すと、YouTubeが選択済みの状態でTakeoutページが開きます。普段使うGoogleアカウントで自動ログインされます。',
+        actionText: 'Takeout (YouTube選択済み) を開く',
+        tip: '💡 スマホよりPCがラク。複数アカウントの方はYouTubeを使うアカウントでログインを!',
+      },
+      {
+        title: 'YouTubeだけ選択されているか確認',
+        desc: 'リンクから入ると自動で「YouTube · YouTube Music」だけチェック済みになっています。他項目にチェックが入っていないか一度確認してください。',
+        tip: '💡 他項目にチェックが入るとファイルが数GBに膨らむことも。',
+      },
+      {
+        title: '視聴履歴(history)だけチェック',
+        desc: 'YouTube右の「含まれるデータすべて」ボタン→「履歴(history)」だけ残して他は解除。✨ デフォルトのHTMLファイルそのままでも完璧に解析できます! JSONに変えてもOKですが必須ではありません。',
+        tip: '💡 HTML · JSON 両方対応 · 形式変更は省略OK',
+      },
+      {
+        title: 'エクスポート作成',
+        desc: '下にスクロール→「次のステップ」→「エクスポート作成」。少し経つとメールに「ダウンロード準備完了」が届きます。リンクを押してzipファイルを保存。',
+        tip: '💡 準備には1分〜数時間かかります(視聴量による)',
+      },
+      {
+        title: '解凍してファイルを探す',
+        desc: 'zip解凍 → Takeout / YouTube · YouTube Music / 履歴 フォルダ内にあります。HTMLでもJSONでも、このページの「私の好みを分析する」→アップロード欄にドラッグすれば完了!',
+        tip: '💡 HTML / JSON · 日本語ファイル名すべてOK。アカウント言語で名前が変わるだけ。',
+      },
+    ],
+    faqHeading: 'よくある質問',
+    faqList: [
+      { q: 'ファイルが大きすぎるんですが、アップロードできますか?', a: '500MB以下ならOK。ほとんどの視聴履歴は5〜50MBなので心配なしです。' },
+      { q: 'HTMLで受け取ったんですが大丈夫?', a: '完璧です! HTML · JSON 両対応。そのままアップロードでOK。' },
+      { q: '「視聴履歴を保存」をオフにしていても解析されますか?', a: 'オフにする前に記録されたデータは残っています。オフ以降は新しく蓄積されないだけです。' },
+      { q: '解析結果はサーバーに保存されますか?', a: 'いいえ。ファイルはブラウザの外には絶対出ません。解析が終わるとメモリからも即削除されます。' },
+    ],
+    privacyHero: {
+      title: 'サーバー送信ZERO · 疑ったら機内モードでテストを',
+      body: 'インターネットを完全に切っても解析は動作します。ネットワークタブを開いて確認可能。ファイルはブラウザの外に絶対出ず、終了後はすぐメモリから蒸発します。',
+    },
+    illust: {
+      youtubeChecked: 'YouTube · YouTube Music ✓',
+      photos: 'Google Photos',
+      drive: 'Google Drive',
+      formatLabel: '形式',
+      formatJson: 'JSON ✓',
+      itemSubscribe: '登録',
+      itemHistory: '履歴 (history)',
+      itemComment: 'コメント',
+      itemPlaylist: '再生リスト',
+      exportHeading: 'エクスポート方式',
+      exportOption: '📥 1回エクスポート · .zip · 2GB',
+      mailWaiting: '📧「ダウンロード準備完了」メール待ち',
+      exportButton: 'エクスポート作成 ▶',
+      folderTakeout: 'Takeout /',
+      folderYoutube: 'YouTube /',
+      folderHistory: '履歴 /',
+    },
   },
 
   upload: {
@@ -361,6 +419,21 @@ export default {
     legendHigh: '多',
     cellTooltip: '{day}曜 {h}時 — {n}本',
     weekdays: ['日', '月', '火', '水', '木', '金', '土'],
+  },
+
+  mbti: {
+    eyebrow: 'MBTI式視聴タイプ',
+    basis: '5軸ベース',
+    totalTypes: '全32タイプ',
+    leaning: '{name}寄り {n}%',
+  },
+
+  feedback: {
+    prompt: '結果はいかがでしたか?',
+    thanks: 'フィードバックありがとう! より良い分析に活用します 🙏',
+    accurate: '正確',
+    interesting: '面白い',
+    disappointing: 'いまいち',
   },
 
   shared: {

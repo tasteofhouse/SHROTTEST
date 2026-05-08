@@ -66,6 +66,64 @@ export default {
       done: '✅ 파일을 받았다면 위의 "분석 시작하기" 버튼을 눌러 업로드하면 끝!',
     },
     badges: { youtubeOnly: 'YouTube 및 YouTube Music ✓' },
+    takeoutBtn: '1️⃣ Takeout 파일 받기',
+    steps: [
+      {
+        title: 'Google Takeout · YouTube 전용 페이지 열기',
+        desc: '아래 바로가기 링크를 누르면 YouTube가 이미 선택된 상태로 Takeout 페이지가 열려요. 평소 쓰는 구글 계정으로 자동 로그인돼요.',
+        actionText: 'Takeout (YouTube 선택됨) 열기',
+        tip: '💡 스마트폰보다 PC에서 하면 편해요. 여러 계정 쓰신다면 YouTube 쓰는 계정으로 로그인!',
+      },
+      {
+        title: 'YouTube만 선택됐는지 확인',
+        desc: '링크로 들어가면 자동으로 "YouTube 및 YouTube Music"만 체크돼 있어요. 다른 항목이 체크돼 있지 않은지 한 번 훑어주세요.',
+        tip: '💡 다른 항목이 체크되면 파일이 수 GB까지 커질 수 있어요',
+      },
+      {
+        title: '시청 기록(history)만 체크',
+        desc: 'YouTube 항목 오른쪽 "포함된 데이터 모두" 버튼 클릭 → "기록(history)"만 남기고 나머지는 체크 해제. ✨ 기본 설정인 HTML 파일 그대로 받아도 완벽하게 분석해 드려요! JSON으로 바꿔도 OK지만 필수 아님 — 그대로 두면 시간 절약!',
+        tip: '💡 HTML · JSON 둘 다 완벽 지원 · 형식 변경 생략해도 돼요',
+      },
+      {
+        title: '내보내기 만들기',
+        desc: '아래로 스크롤 → "다음 단계" → "내보내기 만들기". 잠시 뒤 이메일로 "다운로드 준비 완료" 알림이 와요. 링크를 눌러 zip 파일을 저장해요.',
+        tip: '💡 파일 준비에 1분~몇 시간 걸려요 (시청량에 따라 다름)',
+      },
+      {
+        title: '압축 풀고 파일 찾기',
+        desc: 'zip 파일 압축 해제 → Takeout / YouTube 및 YouTube Music / 기록 폴더 안에 파일이 있어요. HTML이든 JSON이든 이 페이지의 "분석 시작하기" 버튼 → 업로드 창에 끌어놓으면 끝!',
+        tip: '💡 HTML / JSON · 한글 파일명 모두 OK. 언어 설정에 따라 이름만 달라져요',
+      },
+    ],
+    faqHeading: '자주 묻는 질문',
+    faqList: [
+      { q: '파일이 너무 큰데 업로드 되나요?', a: '500MB 이하면 OK. 대부분 시청 기록은 5~50MB 사이라 걱정 없어요.' },
+      { q: 'HTML 파일로 받았는데 괜찮나요?', a: '완벽해요! HTML · JSON 둘 다 지원합니다. 그대로 업로드하시면 돼요.' },
+      { q: '"시청 기록 저장" 기능을 꺼놨는데도 분석되나요?', a: '그동안 기록된 데이터는 남아있어요. 다만 끈 이후부터는 새로 쌓이지 않아요.' },
+      { q: '분석 결과가 서버에 저장되나요?', a: '아니요. 파일은 내 브라우저 밖을 절대 나가지 않아요. 분석이 끝나면 메모리에서도 즉시 지워져요.' },
+    ],
+    privacyHero: {
+      title: '서버 전송 ZERO · 의심되면 비행기 모드로 확인하세요',
+      body: '인터넷을 완전히 끊어도 분석이 동작합니다. 네트워크 탭 열어서 확인 가능. 파일은 내 브라우저 밖을 절대 나가지 않고, 끝나면 즉시 메모리에서 증발해요.',
+    },
+    illust: {
+      youtubeChecked: 'YouTube 및 YouTube Music ✓',
+      photos: 'Google Photos',
+      drive: 'Google Drive',
+      formatLabel: '형식',
+      formatJson: 'JSON ✓',
+      itemSubscribe: '구독',
+      itemHistory: '기록 (history)',
+      itemComment: '댓글',
+      itemPlaylist: '재생목록',
+      exportHeading: '내보내기 방식',
+      exportOption: '📥 1회 내보내기 · .zip · 2GB',
+      mailWaiting: '📧 "다운로드 준비 완료" 메일 대기',
+      exportButton: '내보내기 만들기 ▶',
+      folderTakeout: 'Takeout /',
+      folderYoutube: 'YouTube /',
+      folderHistory: '기록 /',
+    },
   },
 
   upload: {
@@ -363,6 +421,21 @@ export default {
     legendHigh: '많음',
     cellTooltip: '{day}요일 {h}시 — {n}편',
     weekdays: ['일', '월', '화', '수', '목', '금', '토'],
+  },
+
+  mbti: {
+    eyebrow: 'MBTI식 시청 유형',
+    basis: '5가지 축 기반',
+    totalTypes: '총 32유형',
+    leaning: '{name} 성향 {n}%',
+  },
+
+  feedback: {
+    prompt: '결과가 마음에 드셨나요?',
+    thanks: '피드백 감사해요! 더 나은 분석을 위해 활용할게요 🙏',
+    accurate: '정확해요',
+    interesting: '흥미로워요',
+    disappointing: '아쉬워요',
   },
 
   shared: {

@@ -1,8 +1,10 @@
 import { detectMbti } from '../utils/mbtiProfile';
+import { useT } from '../i18n/index.jsx';
 
 // Renders a MBTI-style 5-axis breakdown of the user's viewing profile.
 // Designed to live alongside PersonalityCard in the result tab.
 export default function MbtiCard({ indices }) {
+  const { t } = useT();
   if (!indices) return null;
   const profile = detectMbti(indices);
 
@@ -25,7 +27,7 @@ export default function MbtiCard({ indices }) {
       <div className="relative flex items-start justify-between gap-4">
         <div>
           <div className="flex items-center gap-2 mb-1.5">
-            <span className="text-[10px] tracking-widest uppercase opacity-70">MBTI-style 시청 유형</span>
+            <span className="text-[10px] tracking-widest uppercase opacity-70">{t('mbti.eyebrow')}</span>
           </div>
           <div className="flex items-baseline gap-2 mb-1">
             <span className="text-4xl md:text-5xl font-black tracking-tight font-mono"
@@ -40,8 +42,8 @@ export default function MbtiCard({ indices }) {
           <p className="text-sm opacity-80 mt-1">“{profile.tagline}”</p>
         </div>
         <div className="text-[11px] opacity-70 text-right hidden sm:block">
-          <div>5가지 축 기반</div>
-          <div>총 32유형</div>
+          <div>{t('mbti.basis')}</div>
+          <div>{t('mbti.totalTypes')}</div>
         </div>
       </div>
 
@@ -104,7 +106,7 @@ export default function MbtiCard({ indices }) {
                 />
               </div>
               <div className="mt-0.5 text-[10px] opacity-60 text-right">
-                {pickEmoji} {axis.korean[axis.pick]} 성향 {Math.round(axis.strength)}%
+                {pickEmoji} {t('mbti.leaning', { name: axis.korean[axis.pick], n: Math.round(axis.strength) })}
               </div>
             </div>
           );
